@@ -18,6 +18,7 @@ import Usuarios from "./pages/Usuarios";
 import UploadVendas from "./pages/UploadVendas";
 import HistoricoUploads from "./pages/HistoricoUploads";
 import GestaoCredenciaisIfood from "./pages/GestaoCredenciaisIfood";
+import ConfigurarParametros from "./pages/ConfigurarParametros";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -95,7 +96,7 @@ const App = () => (
             } />
             <Route path="/configurar-parametros" element={
               <ProtectedRoute>
-                <Dashboard />
+                <ConfigurarParametros />
               </ProtectedRoute>
             } />
             <Route path="/parametros-setup" element={

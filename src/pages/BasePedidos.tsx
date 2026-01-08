@@ -51,8 +51,9 @@ const BasePedidos: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedRegional, setSelectedRegional] = useState<string>('');
-  const [selectedLoja, setSelectedLoja] = useState<string>('');
+  const [selectedLojas, setSelectedLojas] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLojaDropdownOpen, setIsLojaDropdownOpen] = useState(false);
 
   const regionais = mockRegionais;
 
@@ -63,10 +64,35 @@ const BasePedidos: React.FC = () => {
 
   const handleRegionalChange = (value: string) => {
     setSelectedRegional(value);
-    setSelectedLoja('');
+    setSelectedLojas([]);
   };
 
-  const canGenerate = dateFrom && dateTo && selectedLoja;
+  const handleLojaToggle = (lojaId: string) => {
+    setSelectedLojas(prev => 
+      prev.includes(lojaId) 
+        ? prev.filter(id => id !== lojaId)
+        : [...prev, lojaId]
+    );
+  };
+
+  const handleSelectAllLojas = () => {
+    if (selectedLojas.length === filteredLojas.length) {
+      setSelectedLojas([]);
+    } else {
+      setSelectedLojas(filteredLojas.map(l => l.id));
+    }
+  };
+
+  const getLojaDisplayText = () => {
+    if (selectedLojas.length === 0) return 'Selecione';
+    if (selectedLojas.length === filteredLojas.length) return 'Todas';
+    if (selectedLojas.length === 1) {
+      return filteredLojas.find(l => l.id === selectedLojas[0])?.nome || '1 loja';
+    }
+    return `${selectedLojas.length} lojas`;
+  };
+
+  const canGenerate = dateFrom && dateTo && selectedLojas.length > 0;
 
   const handleGenerateDownload = async () => {
     if (!canGenerate) return;
@@ -206,43 +232,56 @@ const BasePedidos: React.FC = () => {
               </div>
             </div>
 
-            {/* Loja */}
+            {/* Lojas */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">
-                Loja
+                Lojas
               </label>
-              <div className="relative">
-                <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <select
-                  value={selectedLoja}
-                  onChange={(e) => setSelectedLoja(e.target.value)}
-                  className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all appearance-none cursor-pointer"
-                >
-                  <option value="">Selecione uma loja</option>
-                  {filteredLojas.map(loja => (
-                    <option key={loja.id} value={loja.id}>
-                      {loja.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Popover open={isLojaDropdownOpen} onOpenChange={setIsLojaDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="w-full h-11 px-4 bg-background border border-border rounded-lg text-left flex items-center gap-3 hover:border-foreground/30 transition-colors"
+                  >
+                    <Store className="w-4 h-4 text-muted-foreground" />
+                    <span className={selectedLojas.length === 0 ? 'text-muted-foreground' : 'text-foreground'}>
+                      {getLojaDisplayText()}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0" align="start">
+                  <div className="p-2 border-b border-border">
+                    <button
+                      onClick={handleSelectAllLojas}
+                      className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary rounded-md transition-colors"
+                    >
+                      {selectedLojas.length === filteredLojas.length ? 'Desmarcar todas' : 'Selecionar todas'}
+                    </button>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto p-2 space-y-1">
+                    {filteredLojas.map(loja => (
+                      <button
+                        key={loja.id}
+                        onClick={() => handleLojaToggle(loja.id)}
+                        className={cn(
+                          "w-full text-left px-3 py-2 text-sm rounded-md transition-colors flex items-center gap-2",
+                          selectedLojas.includes(loja.id)
+                            ? "bg-foreground text-background"
+                            : "text-foreground hover:bg-secondary"
+                        )}
+                      >
+                        {loja.nome}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>
 
         {/* Actions Card */}
         <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h3 className="font-medium text-foreground">Gerar Planilha</h3>
-              <p className="text-sm text-muted-foreground">
-                {selectedLoja 
-                  ? `Loja selecionada: ${filteredLojas.find(l => l.id === selectedLoja)?.nome || ''}`
-                  : 'Selecione uma loja para continuar'
-                }
-              </p>
-            </div>
-            
+          <div className="flex items-center justify-end">
             <button
               onClick={handleGenerateDownload}
               disabled={!canGenerate || isGenerating}

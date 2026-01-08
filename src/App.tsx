@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +30,11 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             
             {/* Protected Routes */}
+            <Route path="/home" element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            } />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
@@ -123,7 +129,7 @@ const App = () => (
             } />
             
             {/* Redirects */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Navigate to="/home" replace />} />
             
             {/* 404 */}
             <Route path="*" element={<NotFound />} />

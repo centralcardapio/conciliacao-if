@@ -17,6 +17,7 @@ import {
   Wrench,
   Upload,
   RefreshCw,
+  Home,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,6 +27,7 @@ interface SidebarProps {
 
 const getMenuItems = (role: UserRole): MenuItem[] => {
   const lojaItems: MenuItem[] = [
+    { id: 'home', label: 'Home', icon: 'Home', path: '/home' },
     { id: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard' },
     { id: 'minhas-lojas', label: 'Minhas Lojas', icon: 'Store', path: '/minhas-lojas' },
     { id: 'exportar-lojas', label: 'Exportar Lojas', icon: 'Download', path: '/exportar-lojas' },
@@ -35,6 +37,7 @@ const getMenuItems = (role: UserRole): MenuItem[] => {
   ];
 
   const regionalItems: MenuItem[] = [
+    { id: 'home', label: 'Home', icon: 'Home', path: '/home' },
     { id: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard' },
     { id: 'minhas-lojas', label: 'Minhas Lojas', icon: 'Store', path: '/minhas-lojas' },
     { id: 'exportar-lojas', label: 'Exportar Lojas', icon: 'Download', path: '/exportar-lojas' },
@@ -44,6 +47,7 @@ const getMenuItems = (role: UserRole): MenuItem[] => {
   ];
 
   const corporativoItems: MenuItem[] = [
+    { id: 'home', label: 'Home', icon: 'Home', path: '/home' },
     { id: 'gestao-regionais', label: 'Gestão Regionais', icon: 'Map', path: '/gestao-regionais' },
     { id: 'gestao-lojas', label: 'Gestão Lojas', icon: 'Store', path: '/gestao-lojas' },
     { id: 'gestao-usuarios', label: 'Gestão Usuários', icon: 'Users', path: '/gestao-usuarios' },
@@ -71,6 +75,7 @@ const getMenuItems = (role: UserRole): MenuItem[] => {
 };
 
 const iconComponents: Record<string, React.ComponentType<{ className?: string }>> = {
+  Home,
   LayoutDashboard,
   Store,
   Download,

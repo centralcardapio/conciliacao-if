@@ -44,6 +44,7 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
+      navigate('/home');
       navigate('/dashboard');
     } catch (err) {
       if (err instanceof Error) {

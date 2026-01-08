@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import Regionais from "./pages/Regionais";
 import Lojas from "./pages/Lojas";
 import Usuarios from "./pages/Usuarios";
+import UploadVendas from "./pages/UploadVendas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -102,7 +103,7 @@ const App = () => (
             } />
             <Route path="/upload-vendas" element={
               <ProtectedRoute>
-                <Dashboard />
+                <UploadVendas />
               </ProtectedRoute>
             } />
             <Route path="/historico-uploads" element={

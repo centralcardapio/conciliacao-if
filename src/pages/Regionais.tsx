@@ -1,12 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { Plus, Pencil, Trash2, X, Search, Map, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Search, Map, AlertTriangle, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { z } from 'zod';
 
 interface Regional {
   id: string;
   nome: string;
 }
+
+type SortField = 'id' | 'nome';
+type SortDirection = 'asc' | 'desc';
 
 const regionalSchema = z.object({
   nome: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
@@ -31,21 +34,53 @@ const Regionais: React.FC = () => {
   const [formError, setFormError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>('id');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
-  const filteredRegionais = useMemo(() => 
-    regionais.filter(r => r.nome.toLowerCase().includes(searchTerm.toLowerCase())),
-    [regionais, searchTerm]
-  );
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1);
+  };
 
-  const totalPages = Math.ceil(filteredRegionais.length / ITEMS_PER_PAGE);
+  const sortedAndFilteredRegionais = useMemo(() => {
+    const filtered = regionais.filter(r => 
+      r.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    return filtered.sort((a, b) => {
+      let comparison = 0;
+      if (sortField === 'id') {
+        comparison = Number(a.id) - Number(b.id);
+      } else {
+        comparison = a.nome.localeCompare(b.nome, 'pt-BR');
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [regionais, searchTerm, sortField, sortDirection]);
+
+  const totalPages = Math.ceil(sortedAndFilteredRegionais.length / ITEMS_PER_PAGE);
   const paginatedRegionais = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredRegionais.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredRegionais, currentPage]);
+    return sortedAndFilteredRegionais.slice(start, start + ITEMS_PER_PAGE);
+  }, [sortedAndFilteredRegionais, currentPage]);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 text-muted-foreground" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="w-4 h-4 text-foreground" />
+      : <ArrowDown className="w-4 h-4 text-foreground" />;
   };
 
   const openCreateModal = () => {
@@ -158,11 +193,23 @@ const Regionais: React.FC = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-foreground/5 border-b border-border">
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-24">
-                    ID
+                  <th className="text-left px-6 py-4 w-24">
+                    <button
+                      onClick={() => handleSort('id')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      ID
+                      <SortIcon field="id" />
+                    </button>
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
-                    Nome
+                  <th className="text-left px-6 py-4">
+                    <button
+                      onClick={() => handleSort('nome')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      Nome
+                      <SortIcon field="nome" />
+                    </button>
                   </th>
                   <th className="text-right px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-28">
                     Ações
@@ -170,7 +217,7 @@ const Regionais: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredRegionais.length === 0 ? (
+                {sortedAndFilteredRegionais.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
@@ -236,7 +283,7 @@ const Regionais: React.FC = () => {
           {/* Pagination Footer */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-secondary/30">
             <span className="text-sm text-muted-foreground">
-              Mostrando {paginatedRegionais.length} de {filteredRegionais.length} {filteredRegionais.length === 1 ? 'regional' : 'regionais'}
+              Mostrando {paginatedRegionais.length} de {sortedAndFilteredRegionais.length} {sortedAndFilteredRegionais.length === 1 ? 'regional' : 'regionais'}
             </span>
             
             {totalPages > 1 && (

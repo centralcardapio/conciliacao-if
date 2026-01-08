@@ -119,7 +119,7 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       label: 'Configurações',
       items: [
         { id: 'gestao-credenciais', label: 'Credenciais iFood', icon: 'Key', path: '/gestao-credenciais' },
-        { id: 'configurar-parametros', label: 'Configurações', icon: 'Settings', path: '/configurar-parametros' },
+        { id: 'configurar-parametros', label: 'Parâmetros', icon: 'Settings', path: '/configurar-parametros' },
       ],
     },
     {

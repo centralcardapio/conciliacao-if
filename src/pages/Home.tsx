@@ -27,7 +27,7 @@ const Home: React.FC = () => {
         <h1 className="text-4xl font-bold text-foreground">
           {getGreeting()}, {user?.name?.split(' ')[0]}!
         </h1>
-        <p className="text-lg text-muted-foreground mt-3 max-w-md">
+        <p className="text-lg text-muted-foreground mt-3">
           Bem-vindo ao Conciliação. Use o menu lateral para navegar.
         </p>
         <div className="mt-6 px-4 py-2 bg-secondary rounded-full">

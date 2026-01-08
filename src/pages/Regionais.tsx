@@ -130,10 +130,10 @@ const Regionais: React.FC = () => {
           </div>
           <button 
             onClick={openCreateModal} 
-            className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap px-4 py-2 text-sm"
+            className="btn-primary inline-flex items-center gap-2 px-5 py-2.5"
           >
             <Plus className="w-4 h-4" />
-            Nova Regional
+            <span>Nova Regional</span>
           </button>
           <span className="hidden sm:inline-flex px-3 py-1.5 bg-secondary rounded-full text-sm text-muted-foreground whitespace-nowrap">
             {filteredRegionais.length} {filteredRegionais.length === 1 ? 'regional' : 'regionais'}

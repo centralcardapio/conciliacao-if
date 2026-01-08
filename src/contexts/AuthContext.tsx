@@ -9,7 +9,8 @@ const mockUsers = [
     email: "joao@loja.com",
     password: "Senha123!",
     role: "loja" as UserRole,
-    loja: "Loja Centro"
+    loja: "Loja Centro",
+    empresa: "Rede Supermercados ABC"
   },
   {
     id: 2,
@@ -17,7 +18,8 @@ const mockUsers = [
     email: "maria@regional.com",
     password: "Senha123!",
     role: "regional" as UserRole,
-    regiao: "Região Sul"
+    regiao: "Região Sul",
+    empresa: "Rede Supermercados ABC"
   },
   {
     id: 3,

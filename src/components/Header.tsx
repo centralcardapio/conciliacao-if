@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, Menu, User, Settings, LogOut } from 'lucide-react';
+import { Bell, ChevronDown, Menu, User, Settings, LogOut, Building2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,6 +66,12 @@ const Header: React.FC<HeaderProps> = ({ title = 'Dashboard', onMenuToggle }) =>
             <span className="hidden sm:block text-muted-foreground">|</span>
             <span className="hidden sm:block text-sm text-muted-foreground">{title}</span>
           </div>
+        </div>
+
+        {/* Center section - Corporation */}
+        <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-foreground/5 rounded-lg border border-border">
+          <Building2 className="w-4 h-4 text-foreground" />
+          <span className="text-sm font-medium text-foreground">{user?.empresa || 'Empresa'}</span>
         </div>
 
         {/* Right section */}

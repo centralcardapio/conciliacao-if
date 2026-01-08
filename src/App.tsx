@@ -110,7 +110,7 @@ const App = () => (
                 <HistoricoUploads />
               </ProtectedRoute>
             } />
-            <Route path="/batch-rcod" element={
+            <Route path="/atualizacao-ifood" element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>

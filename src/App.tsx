@@ -17,6 +17,7 @@ import Lojas from "./pages/Lojas";
 import Usuarios from "./pages/Usuarios";
 import UploadVendas from "./pages/UploadVendas";
 import HistoricoUploads from "./pages/HistoricoUploads";
+import GestaoCredenciaisIfood from "./pages/GestaoCredenciaisIfood";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -89,7 +90,7 @@ const App = () => (
             } />
             <Route path="/gestao-credenciais" element={
               <ProtectedRoute>
-                <Dashboard />
+                <GestaoCredenciaisIfood />
               </ProtectedRoute>
             } />
             <Route path="/configurar-parametros" element={

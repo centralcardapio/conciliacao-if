@@ -99,11 +99,6 @@ const App = () => (
                 <ConfigurarParametros />
               </ProtectedRoute>
             } />
-            <Route path="/parametros-setup" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
             <Route path="/upload-vendas" element={
               <ProtectedRoute>
                 <UploadVendas />

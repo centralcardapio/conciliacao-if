@@ -51,7 +51,7 @@ const BasePedidos: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedRegional, setSelectedRegional] = useState<string>('');
-  const [selectedLojas, setSelectedLojas] = useState<string[]>([]);
+  const [selectedLoja, setSelectedLoja] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
 
   const regionais = mockRegionais;
@@ -63,26 +63,10 @@ const BasePedidos: React.FC = () => {
 
   const handleRegionalChange = (value: string) => {
     setSelectedRegional(value);
-    setSelectedLojas([]);
+    setSelectedLoja('');
   };
 
-  const handleLojaToggle = (lojaId: string) => {
-    setSelectedLojas(prev => 
-      prev.includes(lojaId) 
-        ? prev.filter(id => id !== lojaId)
-        : [...prev, lojaId]
-    );
-  };
-
-  const handleSelectAllLojas = () => {
-    if (selectedLojas.length === filteredLojas.length) {
-      setSelectedLojas([]);
-    } else {
-      setSelectedLojas(filteredLojas.map(l => l.id));
-    }
-  };
-
-  const canGenerate = dateFrom && dateTo && selectedLojas.length > 0;
+  const canGenerate = dateFrom && dateTo && selectedLoja;
 
   const handleGenerateDownload = async () => {
     if (!canGenerate) return;
@@ -226,43 +210,27 @@ const BasePedidos: React.FC = () => {
             </div>
           </div>
 
-          {/* Lojas Selection */}
-          <div className="mt-6 space-y-3">
-            <div className="flex items-center justify-between">
+            {/* Loja */}
+            <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">
-                Lojas
+                Loja
               </label>
-              <button
-                onClick={handleSelectAllLojas}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {selectedLojas.length === filteredLojas.length ? 'Desmarcar todas' : 'Selecionar todas'}
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {filteredLojas.map(loja => (
-                <button
-                  key={loja.id}
-                  onClick={() => handleLojaToggle(loja.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all",
-                    selectedLojas.includes(loja.id)
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-background text-foreground border-border hover:border-foreground/30"
-                  )}
+              <div className="relative">
+                <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <select
+                  value={selectedLoja}
+                  onChange={(e) => setSelectedLoja(e.target.value)}
+                  className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all appearance-none cursor-pointer"
                 >
-                  <Store className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{loja.nome}</span>
-                </button>
-              ))}
-            </div>
-
-            {filteredLojas.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhuma loja encontrada para a regional selecionada.
+                  <option value="">Selecione uma loja</option>
+                  {filteredLojas.map(loja => (
+                    <option key={loja.id} value={loja.id}>
+                      {loja.nome}
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -272,9 +240,9 @@ const BasePedidos: React.FC = () => {
             <div className="space-y-1">
               <h3 className="font-medium text-foreground">Gerar Planilha</h3>
               <p className="text-sm text-muted-foreground">
-                {selectedLojas.length > 0 
-                  ? `${selectedLojas.length} loja${selectedLojas.length > 1 ? 's' : ''} selecionada${selectedLojas.length > 1 ? 's' : ''}`
-                  : 'Selecione pelo menos uma loja para continuar'
+                {selectedLoja 
+                  ? `Loja selecionada: ${filteredLojas.find(l => l.id === selectedLoja)?.nome || ''}`
+                  : 'Selecione uma loja para continuar'
                 }
               </p>
             </div>

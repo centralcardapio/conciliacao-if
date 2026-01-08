@@ -1,85 +1,102 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { Search, Key, Store, Save, X, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, Key, Store, Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
-interface Loja {
+interface Regional {
   id: string;
   nome: string;
 }
 
+interface Loja {
+  id: string;
+  nome: string;
+  regionalId: string;
+}
+
 interface Credencial {
+  id: string;
   lojaId: string;
+  regionalId: string;
   clientId: string;
   clientSecret: string;
   token: string;
 }
 
-type SortField = 'id' | 'nome' | 'status';
+type SortField = 'id' | 'loja' | 'regional';
 type SortDirection = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 10;
 
+const credencialSchema = z.object({
+  regionalId: z.string().min(1, 'Regional é obrigatória'),
+  lojaId: z.string().min(1, 'Loja é obrigatória'),
+  clientId: z.string().trim().min(1, 'Client ID é obrigatório').max(100, 'Client ID deve ter no máximo 100 caracteres'),
+  clientSecret: z.string().trim().min(1, 'Client Secret é obrigatório').max(200, 'Client Secret deve ter no máximo 200 caracteres'),
+  token: z.string().trim().max(500, 'Token deve ter no máximo 500 caracteres').optional(),
+});
+
+// Mock regionais
+const mockRegionais: Regional[] = [
+  { id: '1', nome: 'Sul' },
+  { id: '2', nome: 'Sudeste' },
+  { id: '3', nome: 'Centro-Oeste' },
+  { id: '4', nome: 'Nordeste' },
+  { id: '5', nome: 'Norte' },
+];
+
 // Mock lojas
 const mockLojas: Loja[] = [
-  { id: '1', nome: 'Loja Centro' },
-  { id: '2', nome: 'Loja Norte' },
-  { id: '3', nome: 'Loja Sul' },
-  { id: '4', nome: 'Loja Oeste' },
-  { id: '5', nome: 'Loja Leste' },
-  { id: '6', nome: 'Loja Shopping' },
-  { id: '7', nome: 'Loja Aeroporto' },
-  { id: '8', nome: 'Loja Rodoviária' },
+  { id: '1', nome: 'Loja Centro', regionalId: '2' },
+  { id: '2', nome: 'Loja Norte', regionalId: '5' },
+  { id: '3', nome: 'Loja Sul', regionalId: '1' },
+  { id: '4', nome: 'Loja Oeste', regionalId: '3' },
+  { id: '5', nome: 'Loja Leste', regionalId: '2' },
+  { id: '6', nome: 'Loja Shopping', regionalId: '2' },
+  { id: '7', nome: 'Loja Aeroporto', regionalId: '1' },
+  { id: '8', nome: 'Loja Rodoviária', regionalId: '4' },
 ];
 
 // Mock credenciais iniciais
 const mockCredenciais: Credencial[] = [
-  { lojaId: '1', clientId: 'client_abc123', clientSecret: 'secret_xyz789', token: 'token_loja1_active' },
-  { lojaId: '2', clientId: 'client_def456', clientSecret: 'secret_uvw012', token: '' },
-  { lojaId: '3', clientId: '', clientSecret: '', token: '' },
-  { lojaId: '4', clientId: 'client_ghi789', clientSecret: '', token: '' },
-  { lojaId: '5', clientId: 'client_jkl012', clientSecret: 'secret_rst345', token: 'token_loja5_active' },
-  { lojaId: '6', clientId: '', clientSecret: '', token: '' },
-  { lojaId: '7', clientId: 'client_mno345', clientSecret: 'secret_opq678', token: '' },
-  { lojaId: '8', clientId: '', clientSecret: '', token: '' },
+  { id: '1', lojaId: '1', regionalId: '2', clientId: 'client_abc123', clientSecret: 'secret_xyz789', token: 'token_loja1_active' },
+  { id: '2', lojaId: '2', regionalId: '5', clientId: 'client_def456', clientSecret: 'secret_uvw012', token: '' },
+  { id: '3', lojaId: '5', regionalId: '2', clientId: 'client_jkl012', clientSecret: 'secret_rst345', token: 'token_loja5_active' },
+  { id: '4', lojaId: '7', regionalId: '1', clientId: 'client_mno345', clientSecret: 'secret_opq678', token: '' },
 ];
 
-interface EditableCredencial extends Credencial {
-  lojaNome: string;
-  isEditing: boolean;
-  showClientSecret: boolean;
-  showToken: boolean;
-}
-
 const GestaoCredenciaisIfood: React.FC = () => {
+  const [regionais] = useState<Regional[]>(mockRegionais);
   const [lojas] = useState<Loja[]>(mockLojas);
   const [credenciais, setCredenciais] = useState<Credencial[]>(mockCredenciais);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [editingRows, setEditingRows] = useState<Set<string>>(new Set());
-  const [editedValues, setEditedValues] = useState<Record<string, Partial<Credencial>>>({});
-  const [visibleSecrets, setVisibleSecrets] = useState<Record<string, { clientSecret: boolean; token: boolean }>>({});
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editingCredencial, setEditingCredencial] = useState<Credencial | null>(null);
+  const [deletingCredencial, setDeletingCredencial] = useState<Credencial | null>(null);
+  const [formData, setFormData] = useState({ regionalId: '', lojaId: '', clientId: '', clientSecret: '', token: '' });
+  const [formError, setFormError] = useState('');
+  const [showClientSecret, setShowClientSecret] = useState(false);
+  const [showToken, setShowToken] = useState(false);
 
-  const getCredencial = (lojaId: string): Credencial => {
-    return credenciais.find(c => c.lojaId === lojaId) || {
-      lojaId,
-      clientId: '',
-      clientSecret: '',
-      token: '',
-    };
+  const getRegionalNome = (regionalId: string) => {
+    return regionais.find(r => r.id === regionalId)?.nome || '-';
   };
 
-  const hasCompleteCredentials = (lojaId: string): boolean => {
-    const cred = getCredencial(lojaId);
-    return Boolean(cred.clientId && cred.clientSecret);
+  const getLojaNome = (lojaId: string) => {
+    return lojas.find(l => l.id === lojaId)?.nome || '-';
   };
 
-  const hasToken = (lojaId: string): boolean => {
-    const cred = getCredencial(lojaId);
-    return Boolean(cred.token);
-  };
+  const filteredLojasByRegional = useMemo(() => {
+    if (!formData.regionalId) return [];
+    return lojas.filter(l => l.regionalId === formData.regionalId);
+  }, [formData.regionalId, lojas]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -91,32 +108,32 @@ const GestaoCredenciaisIfood: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const sortedAndFilteredLojas = useMemo(() => {
-    const filtered = lojas.filter(l => 
-      l.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      l.id.includes(searchTerm)
-    );
+  const sortedAndFilteredCredenciais = useMemo(() => {
+    const filtered = credenciais.filter(c => {
+      const lojaNome = getLojaNome(c.lojaId).toLowerCase();
+      const regionalNome = getRegionalNome(c.regionalId).toLowerCase();
+      const search = searchTerm.toLowerCase();
+      return lojaNome.includes(search) || regionalNome.includes(search) || c.clientId.toLowerCase().includes(search);
+    });
     
     return filtered.sort((a, b) => {
       let comparison = 0;
       if (sortField === 'id') {
         comparison = Number(a.id) - Number(b.id);
-      } else if (sortField === 'nome') {
-        comparison = a.nome.localeCompare(b.nome, 'pt-BR');
-      } else if (sortField === 'status') {
-        const statusA = hasCompleteCredentials(a.id) ? (hasToken(a.id) ? 2 : 1) : 0;
-        const statusB = hasCompleteCredentials(b.id) ? (hasToken(b.id) ? 2 : 1) : 0;
-        comparison = statusA - statusB;
+      } else if (sortField === 'loja') {
+        comparison = getLojaNome(a.lojaId).localeCompare(getLojaNome(b.lojaId), 'pt-BR');
+      } else if (sortField === 'regional') {
+        comparison = getRegionalNome(a.regionalId).localeCompare(getRegionalNome(b.regionalId), 'pt-BR');
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [lojas, searchTerm, sortField, sortDirection, credenciais]);
+  }, [credenciais, searchTerm, sortField, sortDirection]);
 
-  const totalPages = Math.ceil(sortedAndFilteredLojas.length / ITEMS_PER_PAGE);
-  const paginatedLojas = useMemo(() => {
+  const totalPages = Math.ceil(sortedAndFilteredCredenciais.length / ITEMS_PER_PAGE);
+  const paginatedCredenciais = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return sortedAndFilteredLojas.slice(start, start + ITEMS_PER_PAGE);
-  }, [sortedAndFilteredLojas, currentPage]);
+    return sortedAndFilteredCredenciais.slice(start, start + ITEMS_PER_PAGE);
+  }, [sortedAndFilteredCredenciais, currentPage]);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -132,116 +149,116 @@ const GestaoCredenciaisIfood: React.FC = () => {
       : <ArrowDown className="w-4 h-4 text-foreground" />;
   };
 
-  const startEditing = (lojaId: string) => {
-    const cred = getCredencial(lojaId);
-    setEditingRows(prev => new Set(prev).add(lojaId));
-    setEditedValues(prev => ({
-      ...prev,
-      [lojaId]: {
-        clientId: cred.clientId,
-        clientSecret: cred.clientSecret,
-        token: cred.token,
-      }
-    }));
-  };
-
-  const cancelEditing = (lojaId: string) => {
-    setEditingRows(prev => {
-      const next = new Set(prev);
-      next.delete(lojaId);
-      return next;
-    });
-    setEditedValues(prev => {
-      const next = { ...prev };
-      delete next[lojaId];
-      return next;
-    });
-  };
-
-  const saveCredencial = (lojaId: string) => {
-    const edited = editedValues[lojaId];
-    if (!edited) return;
-
-    setCredenciais(prev => {
-      const existing = prev.find(c => c.lojaId === lojaId);
-      if (existing) {
-        return prev.map(c => 
-          c.lojaId === lojaId 
-            ? { ...c, ...edited }
-            : c
-        );
-      } else {
-        return [...prev, {
-          lojaId,
-          clientId: edited.clientId || '',
-          clientSecret: edited.clientSecret || '',
-          token: edited.token || '',
-        }];
-      }
-    });
-
-    setEditingRows(prev => {
-      const next = new Set(prev);
-      next.delete(lojaId);
-      return next;
-    });
-    setEditedValues(prev => {
-      const next = { ...prev };
-      delete next[lojaId];
-      return next;
-    });
-
-    toast.success('Credenciais salvas com sucesso!');
-  };
-
-  const handleInputChange = (lojaId: string, field: keyof Credencial, value: string) => {
-    setEditedValues(prev => ({
-      ...prev,
-      [lojaId]: {
-        ...prev[lojaId],
-        [field]: value,
-      }
-    }));
-  };
-
-  const toggleSecretVisibility = (lojaId: string, field: 'clientSecret' | 'token') => {
-    setVisibleSecrets(prev => ({
-      ...prev,
-      [lojaId]: {
-        ...prev[lojaId],
-        [field]: !prev[lojaId]?.[field],
-      }
-    }));
-  };
-
   const maskValue = (value: string) => {
-    if (!value) return '';
+    if (!value) return '—';
     if (value.length <= 8) return '••••••••';
     return value.substring(0, 4) + '••••••••' + value.substring(value.length - 4);
   };
 
-  const getStatusBadge = (lojaId: string) => {
-    if (hasToken(lojaId)) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 text-green-600 rounded-full text-xs font-medium">
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          Ativo
-        </span>
-      );
+  const openCreateModal = () => {
+    setEditingCredencial(null);
+    setFormData({ regionalId: '', lojaId: '', clientId: '', clientSecret: '', token: '' });
+    setFormError('');
+    setShowClientSecret(false);
+    setShowToken(false);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (credencial: Credencial) => {
+    setEditingCredencial(credencial);
+    setFormData({
+      regionalId: credencial.regionalId,
+      lojaId: credencial.lojaId,
+      clientId: credencial.clientId,
+      clientSecret: credencial.clientSecret,
+      token: credencial.token,
+    });
+    setFormError('');
+    setShowClientSecret(false);
+    setShowToken(false);
+    setIsModalOpen(true);
+  };
+
+  const openDeleteModal = (credencial: Credencial) => {
+    setDeletingCredencial(credencial);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingCredencial(null);
+    setFormData({ regionalId: '', lojaId: '', clientId: '', clientSecret: '', token: '' });
+    setFormError('');
+    setShowClientSecret(false);
+    setShowToken(false);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeletingCredencial(null);
+  };
+
+  const handleRegionalChange = (regionalId: string) => {
+    setFormData(prev => ({ ...prev, regionalId, lojaId: '' }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+
+    const result = credencialSchema.safeParse(formData);
+    if (!result.success) {
+      setFormError(result.error.errors[0].message);
+      return;
     }
-    if (hasCompleteCredentials(lojaId)) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 text-amber-600 rounded-full text-xs font-medium">
-          <AlertCircle className="w-3.5 h-3.5" />
-          Sem Token
-        </span>
-      );
+
+    // Check if loja already has credentials (when creating new)
+    if (!editingCredencial) {
+      const existingCred = credenciais.find(c => c.lojaId === formData.lojaId);
+      if (existingCred) {
+        setFormError('Esta loja já possui credenciais cadastradas.');
+        return;
+      }
     }
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-muted-foreground rounded-full text-xs font-medium">
-        Não Configurado
-      </span>
-    );
+
+    if (editingCredencial) {
+      setCredenciais(prev =>
+        prev.map(c =>
+          c.id === editingCredencial.id 
+            ? { 
+                ...c, 
+                regionalId: formData.regionalId,
+                lojaId: formData.lojaId,
+                clientId: formData.clientId.trim(),
+                clientSecret: formData.clientSecret.trim(),
+                token: formData.token.trim(),
+              } 
+            : c
+        )
+      );
+      toast.success('Credencial atualizada com sucesso!');
+    } else {
+      const newCredencial: Credencial = {
+        id: Date.now().toString(),
+        regionalId: formData.regionalId,
+        lojaId: formData.lojaId,
+        clientId: formData.clientId.trim(),
+        clientSecret: formData.clientSecret.trim(),
+        token: formData.token.trim(),
+      };
+      setCredenciais(prev => [...prev, newCredencial]);
+      toast.success('Credencial cadastrada com sucesso!');
+    }
+
+    closeModal();
+  };
+
+  const handleDelete = () => {
+    if (deletingCredencial) {
+      setCredenciais(prev => prev.filter(c => c.id !== deletingCredencial.id));
+      toast.success('Credencial excluída com sucesso!');
+      closeDeleteModal();
+    }
   };
 
   return (
@@ -256,24 +273,31 @@ const GestaoCredenciaisIfood: React.FC = () => {
             <div>
               <h1 className="text-2xl font-bold text-foreground">Gestão Credenciais iFood</h1>
               <p className="text-muted-foreground mt-1">
-                Gerencie as credenciais de integração iFood para cada loja. Clique em uma linha para editar.
+                Gerencie as credenciais de integração iFood para cada loja.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center animate-fade-in">
+        {/* Search & Actions Bar */}
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between animate-fade-in">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Buscar loja por nome ou ID..."
+              placeholder="Buscar por loja, regional ou client ID..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
             />
           </div>
+          <button 
+            onClick={openCreateModal} 
+            className="h-11 px-4 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 transition-colors inline-flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Credencial
+          </button>
         </div>
 
         {/* Table Card */}
@@ -291,13 +315,22 @@ const GestaoCredenciaisIfood: React.FC = () => {
                       <SortIcon field="id" />
                     </button>
                   </th>
-                  <th className="text-left px-4 py-4 w-40">
+                  <th className="text-left px-4 py-4">
                     <button
-                      onClick={() => handleSort('nome')}
+                      onClick={() => handleSort('regional')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      Regional
+                      <SortIcon field="regional" />
+                    </button>
+                  </th>
+                  <th className="text-left px-4 py-4">
+                    <button
+                      onClick={() => handleSort('loja')}
                       className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
                     >
                       Loja
-                      <SortIcon field="nome" />
+                      <SortIcon field="loja" />
                     </button>
                   </th>
                   <th className="text-left px-4 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
@@ -309,159 +342,88 @@ const GestaoCredenciaisIfood: React.FC = () => {
                   <th className="text-left px-4 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
                     Token
                   </th>
-                  <th className="text-left px-4 py-4 w-28">
-                    <button
-                      onClick={() => handleSort('status')}
-                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
-                    >
-                      Status
-                      <SortIcon field="status" />
-                    </button>
-                  </th>
-                  <th className="text-right px-4 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-24">
+                  <th className="text-right px-4 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-28">
                     Ações
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {sortedAndFilteredLojas.length === 0 ? (
+                {sortedAndFilteredCredenciais.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
-                          <Store className="w-6 h-6 text-muted-foreground" />
+                          <Key className="w-6 h-6 text-muted-foreground" />
                         </div>
                         <div>
                           <p className="text-foreground font-medium">
-                            {searchTerm ? 'Nenhuma loja encontrada' : 'Nenhuma loja cadastrada'}
+                            {searchTerm ? 'Nenhuma credencial encontrada' : 'Nenhuma credencial cadastrada'}
                           </p>
                           <p className="text-sm text-muted-foreground mt-1">
-                            {searchTerm ? 'Tente buscar por outro termo' : 'Cadastre lojas primeiro'}
+                            {searchTerm ? 'Tente buscar por outro termo' : 'Clique em "Nova Credencial" para começar'}
                           </p>
                         </div>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  paginatedLojas.map((loja) => {
-                    const isEditing = editingRows.has(loja.id);
-                    const cred = getCredencial(loja.id);
-                    const editedCred = editedValues[loja.id] || cred;
-                    const secrets = visibleSecrets[loja.id] || { clientSecret: false, token: false };
-
-                    return (
-                      <tr 
-                        key={loja.id} 
-                        className={`group transition-colors ${isEditing ? 'bg-secondary/60' : 'hover:bg-secondary/40'}`}
-                        onClick={() => !isEditing && startEditing(loja.id)}
-                        style={{ cursor: isEditing ? 'default' : 'pointer' }}
-                      >
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center justify-center w-8 h-8 bg-secondary rounded-lg text-xs font-mono text-muted-foreground">
-                            {loja.id}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <Store className="w-4 h-4 text-foreground/70" />
-                            <span className="font-medium text-foreground text-sm">{loja.nome}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={editedCred.clientId || ''}
-                              onChange={(e) => handleInputChange(loja.id, 'clientId', e.target.value)}
-                              placeholder="Ex: client_abc123"
-                              className="w-full h-9 px-3 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all"
-                            />
-                          ) : (
-                            <span className="text-sm text-foreground/80 font-mono">
-                              {cred.clientId || <span className="text-muted-foreground italic">—</span>}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                          {isEditing ? (
-                            <div className="relative">
-                              <input
-                                type={secrets.clientSecret ? 'text' : 'password'}
-                                value={editedCred.clientSecret || ''}
-                                onChange={(e) => handleInputChange(loja.id, 'clientSecret', e.target.value)}
-                                placeholder="Ex: secret_xyz789"
-                                className="w-full h-9 px-3 pr-10 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all font-mono"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => toggleSecretVisibility(loja.id, 'clientSecret')}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                              >
-                                {secrets.clientSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-foreground/80 font-mono">
-                              {cred.clientSecret ? maskValue(cred.clientSecret) : <span className="text-muted-foreground italic">—</span>}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                          {isEditing ? (
-                            <div className="relative">
-                              <input
-                                type={secrets.token ? 'text' : 'password'}
-                                value={editedCred.token || ''}
-                                onChange={(e) => handleInputChange(loja.id, 'token', e.target.value)}
-                                placeholder="Token de acesso"
-                                className="w-full h-9 px-3 pr-10 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all font-mono"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => toggleSecretVisibility(loja.id, 'token')}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                              >
-                                {secrets.token ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-foreground/80 font-mono">
-                              {cred.token ? maskValue(cred.token) : <span className="text-muted-foreground italic">—</span>}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {getStatusBadge(loja.id)}
-                        </td>
-                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-1">
-                            {isEditing ? (
-                              <>
-                                <button
-                                  onClick={() => saveCredencial(loja.id)}
-                                  className="inline-flex items-center justify-center w-8 h-8 text-green-600 hover:bg-green-500/10 rounded-lg transition-colors"
-                                  title="Salvar"
-                                >
-                                  <Save className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => cancelEditing(loja.id)}
-                                  className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                                  title="Cancelar"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </>
-                            ) : (
-                              <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                Clique para editar
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
+                  paginatedCredenciais.map((cred, index) => (
+                    <tr 
+                      key={cred.id} 
+                      className="group hover:bg-secondary/40 transition-colors"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <td className="px-4 py-4">
+                        <span className="inline-flex items-center justify-center w-8 h-8 bg-secondary rounded-lg text-xs font-mono text-muted-foreground">
+                          {cred.id}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">
+                          {getRegionalNome(cred.regionalId)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <Store className="w-4 h-4 text-foreground/70" />
+                          <span className="font-medium text-foreground text-sm">{getLojaNome(cred.lojaId)}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm text-foreground/80 font-mono">
+                          {cred.clientId || <span className="text-muted-foreground italic">—</span>}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm text-foreground/80 font-mono">
+                          {maskValue(cred.clientSecret)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm text-foreground/80 font-mono">
+                          {maskValue(cred.token)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => openEditModal(cred)}
+                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                            title="Editar"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => openDeleteModal(cred)}
+                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -470,7 +432,7 @@ const GestaoCredenciaisIfood: React.FC = () => {
           {/* Pagination Footer */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-secondary/30">
             <span className="text-sm text-muted-foreground">
-              Mostrando {paginatedLojas.length} de {sortedAndFilteredLojas.length} {sortedAndFilteredLojas.length === 1 ? 'loja' : 'lojas'}
+              Mostrando {paginatedCredenciais.length} de {sortedAndFilteredCredenciais.length} {sortedAndFilteredCredenciais.length === 1 ? 'credencial' : 'credenciais'}
             </span>
             
             {totalPages > 1 && (
@@ -511,6 +473,188 @@ const GestaoCredenciaisIfood: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Create/Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div 
+            className="bg-background border border-border rounded-2xl w-full max-w-md shadow-2xl animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-foreground/5 rounded-xl flex items-center justify-center">
+                  <Key className="w-5 h-5 text-foreground" />
+                </div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  {editingCredencial ? 'Editar Credencial' : 'Nova Credencial'}
+                </h2>
+              </div>
+              <button 
+                onClick={closeModal} 
+                className="w-8 h-8 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              {formError && (
+                <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl">
+                  <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
+                  <p className="text-sm text-destructive">{formError}</p>
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <label htmlFor="regional" className="block text-sm font-medium text-foreground">
+                  Regional
+                </label>
+                <select
+                  id="regional"
+                  value={formData.regionalId}
+                  onChange={(e) => handleRegionalChange(e.target.value)}
+                  className="w-full h-11 px-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+                >
+                  <option value="">Selecione uma regional</option>
+                  {regionais.map(r => (
+                    <option key={r.id} value={r.id}>{r.nome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="loja" className="block text-sm font-medium text-foreground">
+                  Loja
+                </label>
+                <select
+                  id="loja"
+                  value={formData.lojaId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, lojaId: e.target.value }))}
+                  disabled={!formData.regionalId}
+                  className="w-full h-11 px-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">
+                    {formData.regionalId ? 'Selecione uma loja' : 'Selecione uma regional primeiro'}
+                  </option>
+                  {filteredLojasByRegional.map(l => (
+                    <option key={l.id} value={l.id}>{l.nome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="clientId" className="block text-sm font-medium text-foreground">
+                  Client ID
+                </label>
+                <input
+                  id="clientId"
+                  type="text"
+                  value={formData.clientId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, clientId: e.target.value }))}
+                  placeholder="Ex: client_abc123"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all font-mono"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="clientSecret" className="block text-sm font-medium text-foreground">
+                  Client Secret
+                </label>
+                <div className="relative">
+                  <input
+                    id="clientSecret"
+                    type={showClientSecret ? 'text' : 'password'}
+                    value={formData.clientSecret}
+                    onChange={(e) => setFormData(prev => ({ ...prev, clientSecret: e.target.value }))}
+                    placeholder="Ex: secret_xyz789"
+                    className="w-full h-11 px-4 pr-12 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowClientSecret(!showClientSecret)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showClientSecret ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="token" className="block text-sm font-medium text-foreground">
+                  Token <span className="text-muted-foreground font-normal">(opcional)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    id="token"
+                    type={showToken ? 'text' : 'password'}
+                    value={formData.token}
+                    onChange={(e) => setFormData(prev => ({ ...prev, token: e.target.value }))}
+                    placeholder="Token de acesso"
+                    className="w-full h-11 px-4 pr-12 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowToken(!showToken)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showToken ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 h-11 px-4 bg-secondary text-foreground font-medium rounded-lg hover:bg-secondary/80 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 h-11 px-4 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 transition-colors"
+                >
+                  {editingCredencial ? 'Salvar' : 'Criar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && deletingCredencial && (
+        <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div 
+            className="bg-background border border-border rounded-2xl w-full max-w-sm shadow-2xl animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 text-center">
+              <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Excluir Credencial</h3>
+              <p className="text-muted-foreground mb-6">
+                Tem certeza que deseja excluir as credenciais de <strong>{getLojaNome(deletingCredencial.lojaId)}</strong>? Esta ação não pode ser desfeita.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={closeDeleteModal}
+                  className="flex-1 h-11 px-4 bg-secondary text-foreground font-medium rounded-lg hover:bg-secondary/80 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 h-11 px-4 bg-destructive text-destructive-foreground font-medium rounded-lg hover:bg-destructive/90 transition-colors"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

@@ -103,39 +103,39 @@ const Regionais: React.FC = () => {
       <div className="space-y-6">
         {/* Header Card */}
         <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-foreground/5 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Map className="w-6 h-6 text-foreground" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Regionais</h1>
-                <p className="text-muted-foreground mt-1">
-                  Gerencie as regionais do sistema. Cada regional agrupa múltiplas lojas.
-                </p>
-              </div>
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-foreground/5 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Map className="w-6 h-6 text-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Regionais</h1>
+              <p className="text-muted-foreground mt-1">
+                Gerencie as regionais do sistema. Cada regional agrupa múltiplas lojas.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Search & Actions Bar */}
+        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between animate-fade-in">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            <div className="relative flex-1 sm:max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por nome..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="form-input pl-10 w-full"
+              />
             </div>
             <button 
               onClick={openCreateModal} 
               className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4" />
               Nova Regional
             </button>
-          </div>
-        </div>
-
-        {/* Filters & Stats Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between animate-fade-in">
-          <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Buscar por nome..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="form-input pl-10 w-full sm:w-80"
-            />
           </div>
           <div className="flex items-center gap-2 text-sm">
             <span className="px-3 py-1.5 bg-secondary rounded-full text-muted-foreground">
@@ -149,14 +149,14 @@ const Regionais: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <tr className="bg-secondary/50">
+                  <th className="text-left px-6 py-3 text-sm font-medium text-foreground w-24">
                     ID
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Nome da Regional
+                  <th className="text-left px-6 py-3 text-sm font-medium text-foreground">
+                    Nome
                   </th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="text-right px-6 py-3 text-sm font-medium text-foreground w-32">
                     Ações
                   </th>
                 </tr>
@@ -201,20 +201,20 @@ const Regionais: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => openEditModal(regional)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                            title="Editar"
                           >
-                            <Pencil className="w-3.5 h-3.5" />
-                            Editar
+                            <Pencil className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => openDeleteModal(regional)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                            title="Excluir"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            Excluir
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>

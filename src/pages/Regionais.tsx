@@ -117,16 +117,21 @@ const Regionais: React.FC = () => {
         </div>
 
         {/* Search & Actions Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center animate-fade-in">
-          <div className="relative flex-1 max-w-xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Buscar regional por nome..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
-            />
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar regional por nome..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+              />
+            </div>
+            <span className="hidden lg:inline-flex h-11 px-4 items-center bg-secondary rounded-lg text-sm text-muted-foreground whitespace-nowrap">
+              {filteredRegionais.length} {filteredRegionais.length === 1 ? 'regional' : 'regionais'}
+            </span>
           </div>
           <button 
             onClick={openCreateModal} 
@@ -135,9 +140,6 @@ const Regionais: React.FC = () => {
             <Plus className="w-4 h-4" />
             Nova Regional
           </button>
-          <span className="hidden lg:inline-flex h-11 px-4 items-center bg-secondary rounded-lg text-sm text-muted-foreground whitespace-nowrap">
-            {filteredRegionais.length} {filteredRegionais.length === 1 ? 'regional' : 'regionais'}
-          </span>
         </div>
 
         {/* Table Card */}

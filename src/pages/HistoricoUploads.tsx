@@ -288,29 +288,29 @@ const HistoricoUploads: React.FC = () => {
                           <div className="flex items-center gap-4 text-sm">
                             <span className="inline-flex items-center gap-1.5 text-foreground">
                               <Store className="w-3.5 h-3.5 text-muted-foreground" />
-                              <span className="font-medium">{upload.totalLojas}</span>
-                              <span className="text-muted-foreground">{upload.totalLojas === 1 ? 'loja' : 'lojas'}</span>
+                              <span className="font-medium">{upload.totalLojas ?? 0}</span>
+                              <span className="text-muted-foreground">{(upload.totalLojas ?? 0) === 1 ? 'loja' : 'lojas'}</span>
                             </span>
                             <span className="inline-flex items-center gap-1.5 text-foreground">
                               <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
-                              <span className="font-medium">{upload.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                              <span className="font-medium">{(upload.valorTotal ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                             </span>
                           </div>
                           <div className="flex items-center gap-3 text-xs">
                             <span className="text-muted-foreground">
-                              {upload.totalPedidos.toLocaleString()} pedidos
+                              {(upload.totalPedidos ?? 0).toLocaleString()} pedidos
                             </span>
                             <span className="text-muted-foreground">•</span>
                             <span className="text-muted-foreground">
-                              {upload.periodoInicio} a {upload.periodoFim}
+                              {upload.periodoInicio ?? '-'} a {upload.periodoFim ?? '-'}
                             </span>
                           </div>
-                          {(upload.erros > 0 || upload.avisos > 0) && (
+                          {((upload.erros ?? 0) > 0 || (upload.avisos ?? 0) > 0) && (
                             <div className="flex items-center gap-2 text-xs">
-                              {upload.erros > 0 && (
+                              {(upload.erros ?? 0) > 0 && (
                                 <span className="text-destructive">{upload.erros} erros</span>
                               )}
-                              {upload.avisos > 0 && (
+                              {(upload.avisos ?? 0) > 0 && (
                                 <span className="text-yellow-600">{upload.avisos} avisos</span>
                               )}
                             </div>

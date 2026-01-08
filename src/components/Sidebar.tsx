@@ -48,7 +48,7 @@ const getMenuItems = (role: UserRole): MenuItem[] => {
 
   const corporativoItems: MenuItem[] = [
     { id: 'home', label: 'Home', icon: 'Home', path: '/home' },
-    { id: 'gestao-regionais', label: 'Gestão Regionais', icon: 'Map', path: '/gestao-regionais' },
+    { id: 'regionais', label: 'Regionais', icon: 'Map', path: '/regionais' },
     { id: 'gestao-lojas', label: 'Gestão Lojas', icon: 'Store', path: '/gestao-lojas' },
     { id: 'gestao-usuarios', label: 'Gestão Usuários', icon: 'Users', path: '/gestao-usuarios' },
     { id: 'gestao-credenciais', label: 'Gestão Credenciais iFood', icon: 'Key', path: '/gestao-credenciais' },

@@ -127,7 +127,7 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       id: 'uploads',
       label: 'Uploads',
       items: [
-        { id: 'upload-vendas', label: 'Upload Vendas', icon: 'Upload', path: '/upload-vendas', badge: 2 },
+        { id: 'upload-vendas', label: 'Upload Vendas', icon: 'Upload', path: '/upload-vendas' },
         { id: 'historico-uploads', label: 'Histórico de Uploads', icon: 'History', path: '/historico-uploads' },
       ],
     },

@@ -124,11 +124,8 @@ const BasePedidos: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters Card */}
         <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
-          <h2 className="text-lg font-semibold text-foreground mb-6">Filtros</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Date From */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">

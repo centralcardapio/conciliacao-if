@@ -14,6 +14,7 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Regionais from "./pages/Regionais";
 import Lojas from "./pages/Lojas";
+import Usuarios from "./pages/Usuarios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -79,9 +80,9 @@ const App = () => (
                 <Lojas />
               </ProtectedRoute>
             } />
-            <Route path="/gestao-usuarios" element={
+            <Route path="/usuarios" element={
               <ProtectedRoute>
-                <Dashboard />
+                <Usuarios />
               </ProtectedRoute>
             } />
             <Route path="/gestao-credenciais" element={

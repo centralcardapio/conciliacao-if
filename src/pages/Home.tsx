@@ -51,20 +51,20 @@ const Home: React.FC = () => {
   const quickActions = getQuickActions();
 
   return (
-    <Layout>
-      <div className="max-w-4xl mx-auto">
+    <Layout title="Home">
+      <div className="space-y-8">
         {/* Welcome Section */}
-        <div className="mb-12">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="animate-fade-in">
+          <h1 className="text-3xl font-bold text-foreground">
             {getGreeting()}, {user?.name?.split(' ')[0]}!
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Bem-vindo ao Conciliação. O que você gostaria de fazer hoje?
           </p>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
           {quickActions.map((action) => {
             const IconComponent = action.icon;
             return (
@@ -88,7 +88,7 @@ const Home: React.FC = () => {
         </div>
 
         {/* Info Card */}
-        <div className="mt-12 p-6 bg-secondary/50 rounded-lg border border-border">
+        <div className="p-6 bg-secondary/50 rounded-lg border border-border animate-fade-in">
           <p className="text-sm text-muted-foreground">
             <strong className="text-foreground">Dica:</strong> Use o menu lateral para navegar entre as funcionalidades do sistema. 
             Seu perfil de acesso é <span className="font-medium text-foreground capitalize">{user?.role}</span>.

@@ -208,7 +208,6 @@ const BasePedidos: React.FC = () => {
                 </select>
               </div>
             </div>
-          </div>
 
             {/* Loja */}
             <div className="space-y-2">

@@ -118,24 +118,24 @@ const Regionais: React.FC = () => {
 
         {/* Search & Actions Bar */}
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center animate-fade-in">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="relative flex-1 max-w-xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Buscar por nome..."
+              placeholder="Buscar regional por nome..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="form-input pl-10 w-full"
+              className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
             />
           </div>
           <button 
             onClick={openCreateModal} 
-            className="btn-primary inline-flex items-center gap-2 px-5 py-2.5"
+            className="h-11 px-4 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 transition-colors inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span>Nova Regional</span>
+            Nova Regional
           </button>
-          <span className="hidden sm:inline-flex px-3 py-1.5 bg-secondary rounded-full text-sm text-muted-foreground whitespace-nowrap">
+          <span className="hidden lg:inline-flex h-11 px-4 items-center bg-secondary rounded-lg text-sm text-muted-foreground whitespace-nowrap">
             {filteredRegionais.length} {filteredRegionais.length === 1 ? 'regional' : 'regionais'}
           </span>
         </div>

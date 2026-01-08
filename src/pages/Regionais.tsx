@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { Plus, Pencil, Trash2, X, Search, Map, AlertTriangle } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Search, Map, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { z } from 'zod';
 
 interface Regional {
@@ -11,6 +11,8 @@ interface Regional {
 const regionalSchema = z.object({
   nome: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
 });
+
+const ITEMS_PER_PAGE = 10;
 
 const Regionais: React.FC = () => {
   const [regionais, setRegionais] = useState<Regional[]>([
@@ -28,10 +30,23 @@ const Regionais: React.FC = () => {
   const [formData, setFormData] = useState({ nome: '' });
   const [formError, setFormError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredRegionais = regionais.filter(r =>
-    r.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredRegionais = useMemo(() => 
+    regionais.filter(r => r.nome.toLowerCase().includes(searchTerm.toLowerCase())),
+    [regionais, searchTerm]
   );
+
+  const totalPages = Math.ceil(filteredRegionais.length / ITEMS_PER_PAGE);
+  const paginatedRegionais = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredRegionais.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredRegionais, currentPage]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
   const openCreateModal = () => {
     setEditingRegional(null);
@@ -118,20 +133,15 @@ const Regionais: React.FC = () => {
 
         {/* Search & Actions Bar */}
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between animate-fade-in">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Buscar regional por nome..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
-              />
-            </div>
-            <span className="hidden lg:inline-flex h-11 px-4 items-center bg-secondary rounded-lg text-sm text-muted-foreground whitespace-nowrap">
-              {filteredRegionais.length} {filteredRegionais.length === 1 ? 'regional' : 'regionais'}
-            </span>
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Buscar regional por nome..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+            />
           </div>
           <button 
             onClick={openCreateModal} 
@@ -179,7 +189,7 @@ const Regionais: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredRegionais.map((regional, index) => (
+                  paginatedRegionais.map((regional, index) => (
                     <tr 
                       key={regional.id} 
                       className="group hover:bg-secondary/40 transition-colors"
@@ -221,6 +231,49 @@ const Regionais: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination Footer */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-secondary/30">
+            <span className="text-sm text-muted-foreground">
+              Mostrando {paginatedRegionais.length} de {filteredRegionais.length} {filteredRegionais.length === 1 ? 'regional' : 'regionais'}
+            </span>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === page
+                          ? 'bg-foreground text-background'
+                          : 'border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

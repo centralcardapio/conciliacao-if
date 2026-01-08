@@ -1,9 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, X, FileCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Layout from '@/components/Layout';
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, X, FileCheck, CloudUpload, File } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'validating' | 'completed' | 'error';
@@ -142,190 +140,246 @@ const UploadVendas: React.FC = () => {
     }
   }, [handleFile]);
 
-  const getStatusBadge = (stepStatus: UploadStep['status']) => {
+  const getStepIcon = (stepStatus: UploadStep['status']) => {
     switch (stepStatus) {
       case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return (
+          <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
+            <CheckCircle className="w-4 h-4 text-green-600" />
+          </div>
+        );
       case 'in_progress':
-        return <Loader2 className="w-5 h-5 text-primary animate-spin" />;
+        return (
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Loader2 className="w-4 h-4 text-primary animate-spin" />
+          </div>
+        );
       case 'error':
-        return <AlertCircle className="w-5 h-5 text-destructive" />;
+        return (
+          <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center">
+            <AlertCircle className="w-4 h-4 text-destructive" />
+          </div>
+        );
       default:
-        return <div className="w-5 h-5 rounded-full border-2 border-muted" />;
+        return (
+          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+            <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />
+          </div>
+        );
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Upload className="w-8 h-8 text-primary" />
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Upload de Vendas</h1>
-          <p className="text-muted-foreground">Importe planilhas de vendas para processamento</p>
+    <Layout title="Upload de Vendas">
+      <div className="space-y-6">
+        {/* Header Card */}
+        <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-foreground/5 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Upload className="w-6 h-6 text-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Upload de Vendas</h1>
+              <p className="text-muted-foreground mt-1">
+                Importe planilhas de vendas para processamento e validação automática.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Upload Area */}
+          <div className="lg:col-span-2 bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
+            <div className="px-6 py-4 border-b border-border bg-foreground/5">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="w-5 h-5 text-foreground" />
+                <h2 className="font-semibold text-foreground">Arquivo</h2>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {status === 'idle' ? (
+                <label
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`
+                    relative flex flex-col items-center justify-center w-full min-h-[280px]
+                    border-2 border-dashed rounded-xl cursor-pointer
+                    transition-all duration-300
+                    ${isDragOver 
+                      ? 'border-foreground bg-foreground/5 scale-[1.01]' 
+                      : 'border-border hover:border-foreground/40 hover:bg-secondary/30'
+                    }
+                  `}
+                >
+                  <div className="flex flex-col items-center justify-center py-8 px-4">
+                    <div className={`
+                      w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300
+                      ${isDragOver ? 'bg-foreground/10' : 'bg-secondary'}
+                    `}>
+                      <CloudUpload className={`w-10 h-10 transition-colors ${isDragOver ? 'text-foreground' : 'text-muted-foreground'}`} />
+                    </div>
+                    <p className="text-lg font-medium text-foreground mb-2">
+                      {isDragOver ? 'Solte o arquivo aqui' : 'Arraste uma planilha'}
+                    </p>
+                    <p className="text-muted-foreground mb-6">
+                      ou clique para selecionar do computador
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary rounded-full">
+                        <File className="w-3 h-3" />
+                        .xlsx
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary rounded-full">
+                        <File className="w-3 h-3" />
+                        .xls
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary rounded-full">
+                        <File className="w-3 h-3" />
+                        .csv
+                      </span>
+                    </div>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".xlsx,.xls,.csv"
+                    onChange={handleFileInput}
+                  />
+                </label>
+              ) : (
+                <div className="space-y-6">
+                  {/* File Info */}
+                  <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-xl border border-border">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-foreground/5 rounded-xl flex items-center justify-center">
+                        <FileSpreadsheet className="w-6 h-6 text-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{file?.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {file && (file.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                    </div>
+                    {status === 'completed' && (
+                      <button 
+                        onClick={resetUpload}
+                        className="w-8 h-8 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors"
+                      >
+                        <X className="w-5 h-5 text-muted-foreground" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Progress */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Progresso geral</span>
+                      <span className="font-semibold text-foreground">{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                  </div>
+
+                  {/* Validation Results */}
+                  {validationResult && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="p-4 bg-secondary/50 rounded-xl text-center border border-border">
+                        <p className="text-2xl font-bold text-foreground">{validationResult.total.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Total de linhas</p>
+                      </div>
+                      <div className="p-4 bg-green-500/5 rounded-xl text-center border border-green-500/20">
+                        <p className="text-2xl font-bold text-green-600">{validationResult.valid.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Válidos</p>
+                      </div>
+                      <div className="p-4 bg-destructive/5 rounded-xl text-center border border-destructive/20">
+                        <p className="text-2xl font-bold text-destructive">{validationResult.errors}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Erros</p>
+                      </div>
+                      <div className="p-4 bg-yellow-500/5 rounded-xl text-center border border-yellow-500/20">
+                        <p className="text-2xl font-bold text-yellow-600">{validationResult.warnings}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Avisos</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  {status === 'completed' && (
+                    <div className="flex gap-3 pt-2">
+                      <button onClick={resetUpload} className="btn-secondary flex-1">
+                        Novo Upload
+                      </button>
+                      <button className="btn-primary flex-1 inline-flex items-center justify-center gap-2">
+                        <FileCheck className="w-4 h-4" />
+                        Confirmar Importação
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Steps Panel */}
+          <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
+            <div className="px-6 py-4 border-b border-border bg-foreground/5">
+              <h2 className="font-semibold text-foreground">Etapas do Processamento</h2>
+            </div>
+            
+            <div className="p-6">
+              <div className="space-y-4">
+                {steps.map((step, index) => (
+                  <div key={step.id} className="flex items-center gap-4">
+                    {getStepIcon(step.status)}
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium text-sm truncate ${
+                        step.status === 'completed' ? 'text-foreground' : 
+                        step.status === 'in_progress' ? 'text-foreground' : 
+                        'text-muted-foreground'
+                      }`}>
+                        {step.label}
+                      </p>
+                      {step.status === 'completed' && (
+                        <p className="text-xs text-green-600">Concluído</p>
+                      )}
+                      {step.status === 'in_progress' && (
+                        <p className="text-xs text-primary">Em andamento...</p>
+                      )}
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div className="absolute left-[39px] top-12 w-0.5 h-4 bg-border" />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {status === 'completed' && (
+                <div className="mt-6 p-4 bg-green-500/5 border border-green-500/20 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Processamento concluído!</p>
+                      <p className="text-xs text-muted-foreground">Arquivo validado com sucesso</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {status === 'idle' && (
+                <div className="mt-6 p-4 bg-secondary/50 rounded-xl">
+                  <p className="text-sm text-muted-foreground text-center">
+                    Aguardando arquivo para iniciar o processamento
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Upload Area */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileSpreadsheet className="w-5 h-5" />
-              Arquivo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {status === 'idle' ? (
-              <label
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`
-                  flex flex-col items-center justify-center w-full h-64 
-                  border-2 border-dashed rounded-lg cursor-pointer
-                  transition-all duration-200
-                  ${isDragOver 
-                    ? 'border-primary bg-primary/10' 
-                    : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
-                  }
-                `}
-              >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className={`w-12 h-12 mb-4 ${isDragOver ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <p className="mb-2 text-lg font-medium text-foreground">
-                    {isDragOver ? 'Solte o arquivo aqui' : 'Arraste uma planilha aqui'}
-                  </p>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    ou clique para selecionar
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Formatos aceitos: .xlsx, .xls, .csv
-                  </p>
-                </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".xlsx,.xls,.csv"
-                  onChange={handleFileInput}
-                />
-              </label>
-            ) : (
-              <div className="space-y-6">
-                {/* File Info */}
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <FileSpreadsheet className="w-10 h-10 text-primary" />
-                    <div>
-                      <p className="font-medium text-foreground">{file?.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {file && (file.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                  </div>
-                  {status === 'completed' && (
-                    <Button variant="ghost" size="icon" onClick={resetUpload}>
-                      <X className="w-5 h-5" />
-                    </Button>
-                  )}
-                </div>
-
-                {/* Progress */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Progresso</span>
-                    <span className="font-medium text-foreground">{progress}%</span>
-                  </div>
-                  <Progress value={progress} className="h-3" />
-                </div>
-
-                {/* Validation Results */}
-                {validationResult && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="p-4 bg-muted/50 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-foreground">{validationResult.total}</p>
-                      <p className="text-sm text-muted-foreground">Total de linhas</p>
-                    </div>
-                    <div className="p-4 bg-green-500/10 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-green-600">{validationResult.valid}</p>
-                      <p className="text-sm text-muted-foreground">Válidos</p>
-                    </div>
-                    <div className="p-4 bg-destructive/10 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-destructive">{validationResult.errors}</p>
-                      <p className="text-sm text-muted-foreground">Erros</p>
-                    </div>
-                    <div className="p-4 bg-yellow-500/10 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-yellow-600">{validationResult.warnings}</p>
-                      <p className="text-sm text-muted-foreground">Avisos</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Actions */}
-                {status === 'completed' && (
-                  <div className="flex gap-3">
-                    <Button onClick={resetUpload} variant="outline" className="flex-1">
-                      Novo Upload
-                    </Button>
-                    <Button className="flex-1">
-                      <FileCheck className="w-4 h-4 mr-2" />
-                      Confirmar Importação
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Steps Panel */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Etapas do Processamento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {steps.map((step, index) => (
-                <div key={step.id} className="flex items-center gap-3">
-                  {getStatusBadge(step.status)}
-                  <div className="flex-1">
-                    <p className={`font-medium ${
-                      step.status === 'completed' ? 'text-foreground' : 
-                      step.status === 'in_progress' ? 'text-primary' : 
-                      'text-muted-foreground'
-                    }`}>
-                      {step.label}
-                    </p>
-                  </div>
-                  {step.status === 'completed' && (
-                    <Badge variant="secondary" className="text-green-600 bg-green-500/10">
-                      Concluído
-                    </Badge>
-                  )}
-                  {step.status === 'in_progress' && (
-                    <Badge variant="secondary" className="text-primary bg-primary/10">
-                      Em andamento
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {status === 'completed' && (
-              <div className="mt-6 p-4 bg-green-500/10 rounded-lg">
-                <div className="flex items-center gap-2 text-green-600">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-medium">Processamento concluído!</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Arquivo processado e validado com sucesso.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    </Layout>
   );
 };
 

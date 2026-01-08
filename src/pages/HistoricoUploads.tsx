@@ -57,7 +57,8 @@ const HistoricoUploads: React.FC = () => {
   const sortedAndFilteredUploads = useMemo(() => {
     let filtered = uploads.filter(u => 
       u.usuario.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.nomeArquivo.toLowerCase().includes(searchTerm.toLowerCase())
+      u.nomeArquivo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.status.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
     if (statusFilter !== 'todos') {
@@ -174,7 +175,7 @@ const HistoricoUploads: React.FC = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Buscar por usuário ou arquivo..."
+              placeholder="Buscar por usuário, arquivo ou status..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"

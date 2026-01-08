@@ -13,6 +13,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Regionais from "./pages/Regionais";
+import Lojas from "./pages/Lojas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,9 +74,9 @@ const App = () => (
                 <Regionais />
               </ProtectedRoute>
             } />
-            <Route path="/gestao-lojas" element={
+            <Route path="/lojas" element={
               <ProtectedRoute>
-                <Dashboard />
+                <Lojas />
               </ProtectedRoute>
             } />
             <Route path="/gestao-usuarios" element={

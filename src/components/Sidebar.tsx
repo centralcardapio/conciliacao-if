@@ -50,7 +50,7 @@ const getMenuItems = (role: UserRole): MenuItem[] => {
     { id: 'home', label: 'Home', icon: 'Home', path: '/home' },
     { id: 'regionais', label: 'Regionais', icon: 'Map', path: '/regionais' },
     { id: 'lojas', label: 'Lojas', icon: 'Store', path: '/lojas' },
-    { id: 'gestao-usuarios', label: 'Gestão Usuários', icon: 'Users', path: '/gestao-usuarios' },
+    { id: 'usuarios', label: 'Usuários', icon: 'Users', path: '/usuarios' },
     { id: 'gestao-credenciais', label: 'Gestão Credenciais iFood', icon: 'Key', path: '/gestao-credenciais' },
     { id: 'configurar-parametros', label: 'Configurar Parâmetros', icon: 'Settings', path: '/configurar-parametros' },
     { id: 'parametros-setup', label: 'Parâmetros Setup', icon: 'Wrench', path: '/parametros-setup' },

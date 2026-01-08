@@ -1,45 +1,9 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
-import { 
-  Store, 
-  Upload, 
-  BarChart3, 
-  Users, 
-  ArrowRight,
-  Package,
-  Settings
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
-
-  const getQuickActions = () => {
-    switch (user?.role) {
-      case 'loja':
-        return [
-          { label: 'Ver Dashboard', icon: BarChart3, path: '/dashboard' },
-          { label: 'Minhas Lojas', icon: Store, path: '/minhas-lojas' },
-          { label: 'Base Pedidos', icon: Package, path: '/base-pedidos' },
-        ];
-      case 'regional':
-        return [
-          { label: 'Ver Dashboard', icon: BarChart3, path: '/dashboard' },
-          { label: 'Minhas Lojas', icon: Store, path: '/minhas-lojas' },
-          { label: 'Base Pedidos', icon: Package, path: '/base-pedidos' },
-        ];
-      case 'corporativo':
-        return [
-          { label: 'Ver Dashboard', icon: BarChart3, path: '/dashboard' },
-          { label: 'Upload Vendas', icon: Upload, path: '/upload-vendas' },
-          { label: 'Gestão Usuários', icon: Users, path: '/gestao-usuarios' },
-          { label: 'Configurações', icon: Settings, path: '/configurar-parametros' },
-        ];
-      default:
-        return [];
-    }
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -48,51 +12,28 @@ const Home: React.FC = () => {
     return 'Boa noite';
   };
 
-  const quickActions = getQuickActions();
+  const getRoleLabel = () => {
+    switch (user?.role) {
+      case 'loja': return 'Loja';
+      case 'regional': return 'Regional';
+      case 'corporativo': return 'Corporativo';
+      default: return '';
+    }
+  };
 
   return (
     <Layout title="Home">
-      <div className="space-y-8">
-        {/* Welcome Section */}
-        <div className="animate-fade-in">
-          <h1 className="text-3xl font-bold text-foreground">
-            {getGreeting()}, {user?.name?.split(' ')[0]}!
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Bem-vindo ao Conciliação. O que você gostaria de fazer hoje?
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
-          {quickActions.map((action) => {
-            const IconComponent = action.icon;
-            return (
-              <Link
-                key={action.path}
-                to={action.path}
-                className="group p-6 bg-card border border-border rounded-lg hover:border-foreground/20 hover:shadow-sm transition-all duration-200"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-secondary rounded-lg group-hover:bg-foreground/5 transition-colors">
-                      <IconComponent className="w-6 h-6 text-foreground" />
-                    </div>
-                    <span className="font-medium text-foreground">{action.label}</span>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Info Card */}
-        <div className="p-6 bg-secondary/50 rounded-lg border border-border animate-fade-in">
-          <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Dica:</strong> Use o menu lateral para navegar entre as funcionalidades do sistema. 
-            Seu perfil de acesso é <span className="font-medium text-foreground capitalize">{user?.role}</span>.
-          </p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-fade-in">
+        <h1 className="text-4xl font-bold text-foreground">
+          {getGreeting()}, {user?.name?.split(' ')[0]}!
+        </h1>
+        <p className="text-lg text-muted-foreground mt-3 max-w-md">
+          Bem-vindo ao Conciliação. Use o menu lateral para navegar.
+        </p>
+        <div className="mt-6 px-4 py-2 bg-secondary rounded-full">
+          <span className="text-sm text-muted-foreground">
+            Perfil: <span className="font-medium text-foreground">{getRoleLabel()}</span>
+          </span>
         </div>
       </div>
     </Layout>

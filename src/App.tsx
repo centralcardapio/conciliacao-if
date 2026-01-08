@@ -115,11 +115,6 @@ const App = () => (
                 <Dashboard />
               </ProtectedRoute>
             } />
-            <Route path="/batch-consignado" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Dashboard />

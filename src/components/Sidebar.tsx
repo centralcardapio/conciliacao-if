@@ -135,7 +135,6 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       label: 'Processamento',
       items: [
         { id: 'batch-rcod', label: 'Batch Atualização Rcod', icon: 'RefreshCw', path: '/batch-rcod' },
-        { id: 'batch-consignado', label: 'Batch Atualização Consignado', icon: 'RefreshCw', path: '/batch-consignado' },
       ],
     },
     {

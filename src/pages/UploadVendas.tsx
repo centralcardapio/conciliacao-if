@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import Layout from '@/components/Layout';
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, X, FileCheck, CloudUpload, File } from 'lucide-react';
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, X, FileCheck, CloudUpload, File, Info, Calendar, Clock, DollarSign, Store, Hash } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 
@@ -183,6 +183,58 @@ const UploadVendas: React.FC = () => {
               <p className="text-muted-foreground mt-1">
                 Importe planilhas de vendas para processamento e validação automática.
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Format Guide Card */}
+        <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
+          <div className="px-6 py-4 border-b border-border bg-foreground/5">
+            <div className="flex items-center gap-2">
+              <Info className="w-5 h-5 text-foreground" />
+              <h2 className="font-semibold text-foreground">Formato do Arquivo</h2>
+            </div>
+          </div>
+          <div className="p-6">
+            <p className="text-sm text-muted-foreground mb-4">
+              A planilha deve conter as seguintes colunas na primeira linha:
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div className="p-3 bg-secondary/50 rounded-lg border border-border">
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Data</span>
+                </div>
+                <p className="text-xs text-muted-foreground">DD/MM/AAAA</p>
+              </div>
+              <div className="p-3 bg-secondary/50 rounded-lg border border-border">
+                <div className="flex items-center gap-2 mb-1">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Hora</span>
+                </div>
+                <p className="text-xs text-muted-foreground">HH:MM</p>
+              </div>
+              <div className="p-3 bg-secondary/50 rounded-lg border border-border">
+                <div className="flex items-center gap-2 mb-1">
+                  <DollarSign className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Valor</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Numérico (ex: 150.00)</p>
+              </div>
+              <div className="p-3 bg-secondary/50 rounded-lg border border-border">
+                <div className="flex items-center gap-2 mb-1">
+                  <Store className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Loja</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Código da loja</p>
+              </div>
+              <div className="p-3 bg-secondary/50 rounded-lg border border-border">
+                <div className="flex items-center gap-2 mb-1">
+                  <Hash className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Pedido</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Número do pedido</p>
+              </div>
             </div>
           </div>
         </div>

@@ -131,10 +131,10 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       ],
     },
     {
-      id: 'processamento',
-      label: 'Processamento',
+      id: 'atualizacao-ifood',
+      label: 'Atualização iFood',
       items: [
-        { id: 'batch-rcod', label: 'Batch Atualização Rcod', icon: 'RefreshCw', path: '/batch-rcod' },
+        { id: 'atualizacao-ifood', label: 'Histórico Atualizações', icon: 'RefreshCw', path: '/atualizacao-ifood' },
       ],
     },
     {

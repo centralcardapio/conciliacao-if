@@ -16,6 +16,7 @@ import Regionais from "./pages/Regionais";
 import Lojas from "./pages/Lojas";
 import Usuarios from "./pages/Usuarios";
 import UploadVendas from "./pages/UploadVendas";
+import HistoricoUploads from "./pages/HistoricoUploads";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -108,7 +109,7 @@ const App = () => (
             } />
             <Route path="/historico-uploads" element={
               <ProtectedRoute>
-                <Dashboard />
+                <HistoricoUploads />
               </ProtectedRoute>
             } />
             <Route path="/batch-rcod" element={

@@ -90,7 +90,7 @@ const App = () => (
                 <HistoricoUploads />
               </ProtectedRoute>
             } />
-            <Route path="/atualizacao-ifood" element={
+            <Route path="/historico-ifood" element={
               <ProtectedRoute>
                 <AtualizacaoIfood />
               </ProtectedRoute>

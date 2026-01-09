@@ -50,27 +50,6 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Placeholder routes - will be implemented in Phase 2 */}
-            <Route path="/minhas-lojas" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/exportar-lojas" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/finalizar-loja" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/historico-lojas" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
             <Route path="/base-pedidos" element={
               <ProtectedRoute>
                 <BasePedidos />
@@ -114,16 +93,6 @@ const App = () => (
             <Route path="/atualizacao-ifood" element={
               <ProtectedRoute>
                 <AtualizacaoIfood />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Dashboard />
               </ProtectedRoute>
             } />
             

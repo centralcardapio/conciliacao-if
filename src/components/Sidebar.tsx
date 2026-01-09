@@ -6,15 +6,12 @@ import { X } from 'lucide-react';
 import {
   LayoutDashboard,
   Store,
-  Download,
-  CheckCircle,
   History,
   Package,
   Map,
   Users,
   Key,
   Settings,
-  Wrench,
   Upload,
   RefreshCw,
   Home,
@@ -50,16 +47,6 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       ],
     },
     {
-      id: 'lojas',
-      label: 'Gestão de Lojas',
-      items: [
-        { id: 'minhas-lojas', label: 'Minhas Lojas', icon: 'Store', path: '/minhas-lojas' },
-        { id: 'exportar-lojas', label: 'Exportar Lojas', icon: 'Download', path: '/exportar-lojas' },
-        { id: 'finalizar-loja', label: 'Finalizar Loja', icon: 'CheckCircle', path: '/finalizar-loja' },
-        { id: 'historico-lojas', label: 'Histórico de Lojas', icon: 'History', path: '/historico-lojas' },
-      ],
-    },
-    {
       id: 'pedidos',
       label: 'Pedidos',
       items: [
@@ -75,16 +62,6 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       items: [
         { id: 'home', label: 'Home', icon: 'Home', path: '/home' },
         { id: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard' },
-      ],
-    },
-    {
-      id: 'lojas',
-      label: 'Gestão de Lojas',
-      items: [
-        { id: 'minhas-lojas', label: 'Minhas Lojas', icon: 'Store', path: '/minhas-lojas' },
-        { id: 'exportar-lojas', label: 'Exportar Lojas', icon: 'Download', path: '/exportar-lojas' },
-        { id: 'finalizar-loja', label: 'Finalizar Loja', icon: 'CheckCircle', path: '/finalizar-loja' },
-        { id: 'historico-lojas', label: 'Histórico de Lojas', icon: 'History', path: '/historico-lojas' },
       ],
     },
     {
@@ -162,15 +139,12 @@ const iconComponents: Record<string, React.ComponentType<{ className?: string }>
   Home,
   LayoutDashboard,
   Store,
-  Download,
-  CheckCircle,
   History,
   Package,
   Map,
   Users,
   Key,
   Settings,
-  Wrench,
   Upload,
   RefreshCw,
 };

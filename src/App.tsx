@@ -21,6 +21,7 @@ import GestaoCredenciaisIfood from "./pages/GestaoCredenciaisIfood";
 import ConfigurarParametros from "./pages/ConfigurarParametros";
 import BasePedidos from "./pages/BasePedidos";
 import AtualizacaoIfood from "./pages/AtualizacaoIfood";
+import Tarefas from "./pages/Tarefas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -93,6 +94,11 @@ const App = () => (
             <Route path="/historico-ifood" element={
               <ProtectedRoute>
                 <AtualizacaoIfood />
+              </ProtectedRoute>
+            } />
+            <Route path="/tarefas" element={
+              <ProtectedRoute>
+                <Tarefas />
               </ProtectedRoute>
             } />
             

@@ -66,7 +66,8 @@ const AtualizacaoIfood: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedRegional, setSelectedRegional] = useState<string>('');
-  const [selectedLoja, setSelectedLoja] = useState<string>('');
+  const [selectedLojas, setSelectedLojas] = useState<string[]>([]);
+  const [lojasDropdownOpen, setLojasDropdownOpen] = useState(false);
 
   const filteredLojas = useMemo(() => {
     if (!selectedRegional) return mockLojas;
@@ -75,7 +76,32 @@ const AtualizacaoIfood: React.FC = () => {
 
   const handleRegionalChange = (value: string) => {
     setSelectedRegional(value);
-    setSelectedLoja('');
+    setSelectedLojas([]);
+  };
+
+  const handleLojaToggle = (lojaId: string) => {
+    setSelectedLojas(prev => 
+      prev.includes(lojaId) 
+        ? prev.filter(id => id !== lojaId)
+        : [...prev, lojaId]
+    );
+  };
+
+  const handleSelectAllLojas = () => {
+    if (selectedLojas.length === filteredLojas.length) {
+      setSelectedLojas([]);
+    } else {
+      setSelectedLojas(filteredLojas.map(l => l.id));
+    }
+  };
+
+  const getSelectedLojasText = () => {
+    if (selectedLojas.length === 0) return 'Todas as lojas';
+    if (selectedLojas.length === filteredLojas.length) return 'Todas as lojas';
+    if (selectedLojas.length === 1) {
+      return filteredLojas.find(l => l.id === selectedLojas[0])?.nome || '1 loja';
+    }
+    return `${selectedLojas.length} lojas selecionadas`;
   };
 
   const filteredLogs = useMemo(() => {
@@ -87,10 +113,10 @@ const AtualizacaoIfood: React.FC = () => {
         if (log.dataExecucao > endOfDay) return false;
       }
       if (selectedRegional && log.regionalId !== selectedRegional) return false;
-      if (selectedLoja && log.lojaId !== selectedLoja) return false;
+      if (selectedLojas.length > 0 && !selectedLojas.includes(log.lojaId)) return false;
       return true;
     });
-  }, [dateFrom, dateTo, selectedRegional, selectedLoja]);
+  }, [dateFrom, dateTo, selectedRegional, selectedLojas]);
 
   const getStatusIcon = (status: BatchLog['status']) => {
     switch (status) {
@@ -252,26 +278,50 @@ const AtualizacaoIfood: React.FC = () => {
               </div>
             </div>
 
-            {/* Loja */}
+            {/* Lojas - Multi-select */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">
-                Loja
+                Lojas
               </label>
-              <div className="relative">
-                <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <select
-                  value={selectedLoja}
-                  onChange={(e) => setSelectedLoja(e.target.value)}
-                  className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all appearance-none cursor-pointer"
-                >
-                  <option value="">Todas as lojas</option>
-                  {filteredLojas.map(loja => (
-                    <option key={loja.id} value={loja.id}>
-                      {loja.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Popover open={lojasDropdownOpen} onOpenChange={setLojasDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className={cn(
+                      "w-full h-11 px-4 pl-11 bg-background border border-border rounded-lg text-left flex items-center gap-3 hover:border-foreground/30 transition-colors relative",
+                      selectedLojas.length === 0 && "text-muted-foreground"
+                    )}
+                  >
+                    <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <span className="truncate">{getSelectedLojasText()}</span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-0 bg-card border border-border z-50" align="start">
+                  <div className="p-2 border-b border-border">
+                    <button
+                      onClick={handleSelectAllLojas}
+                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors font-medium"
+                    >
+                      {selectedLojas.length === filteredLojas.length ? 'Desmarcar todas' : 'Selecionar todas'}
+                    </button>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto p-2">
+                    {filteredLojas.map(loja => (
+                      <label
+                        key={loja.id}
+                        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted cursor-pointer transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedLojas.includes(loja.id)}
+                          onChange={() => handleLojaToggle(loja.id)}
+                          className="w-4 h-4 rounded border-border"
+                        />
+                        <span className="text-sm text-foreground">{loja.nome}</span>
+                      </label>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>

@@ -15,6 +15,7 @@ import {
   Upload,
   RefreshCw,
   Home,
+  ClipboardList,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -108,6 +109,13 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       ],
     },
     {
+      id: 'tarefas',
+      label: 'Tarefas',
+      items: [
+        { id: 'tarefas', label: 'Tarefas', icon: 'ClipboardList', path: '/tarefas' },
+      ],
+    },
+    {
       id: 'historico-ifood',
       label: 'Atualização iFood',
       items: [
@@ -147,6 +155,7 @@ const iconComponents: Record<string, React.ComponentType<{ className?: string }>
   Settings,
   Upload,
   RefreshCw,
+  ClipboardList,
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {

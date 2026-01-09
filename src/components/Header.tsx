@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Menu, User, Settings, LogOut, Building2 } from 'lucide-react';
+import { ChevronDown, Menu, User, LogOut, Building2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,15 +96,6 @@ const Header: React.FC<HeaderProps> = ({ title = 'Dashboard', onMenuToggle }) =>
                 <p className="text-xs text-muted-foreground">{getRoleLabel(user?.role || '')}</p>
               </div>
               <DropdownMenuSeparator className="md:hidden" />
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
-                <User className="w-4 h-4 mr-2" />
-                Meus Dados
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                <Settings className="w-4 h-4 mr-2" />
-                Configurações
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => setShowLogoutDialog(true)}
                 className="text-destructive focus:text-destructive"

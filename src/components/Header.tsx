@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, Menu, User, Settings, LogOut, Building2 } from 'lucide-react';
+import { ChevronDown, Menu, User, Settings, LogOut, Building2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'Dashboard', onMenuToggle }) =>
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const notificationCount = user?.role === 'corporativo' ? 3 : 0;
+  
 
   const handleLogout = () => {
     logout();
@@ -74,17 +74,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'Dashboard', onMenuToggle }) =>
           <span className="text-sm font-medium text-foreground">{user?.empresa || 'Empresa'}</span>
         </div>
 
-        {/* Right section */}
         <div className="flex items-center gap-2">
-          {/* Notifications */}
-          <button className="relative p-2 hover:bg-secondary rounded-md transition-colors">
-            <Bell className="w-5 h-5 text-muted-foreground" />
-            {notificationCount > 0 && (
-              <span className="badge absolute -top-1 -right-1">
-                {notificationCount}
-              </span>
-            )}
-          </button>
 
           {/* User Menu */}
           <DropdownMenu>

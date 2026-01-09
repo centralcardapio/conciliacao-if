@@ -109,17 +109,17 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       ],
     },
     {
-      id: 'tarefas',
-      label: 'Tarefas',
-      items: [
-        { id: 'tarefas', label: 'Tarefas', icon: 'ClipboardList', path: '/tarefas' },
-      ],
-    },
-    {
       id: 'historico-ifood',
       label: 'Atualização iFood',
       items: [
         { id: 'historico-ifood', label: 'Histórico Atualizações', icon: 'RefreshCw', path: '/historico-ifood' },
+      ],
+    },
+    {
+      id: 'tarefas',
+      label: 'Tarefas',
+      items: [
+        { id: 'tarefas', label: 'Tarefas', icon: 'ClipboardList', path: '/tarefas' },
       ],
     },
     {

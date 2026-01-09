@@ -108,10 +108,10 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       ],
     },
     {
-      id: 'atualizacao-ifood',
+      id: 'historico-ifood',
       label: 'Atualização iFood',
       items: [
-        { id: 'atualizacao-ifood', label: 'Histórico Atualizações', icon: 'RefreshCw', path: '/atualizacao-ifood' },
+        { id: 'historico-ifood', label: 'Histórico Atualizações', icon: 'RefreshCw', path: '/historico-ifood' },
       ],
     },
     {

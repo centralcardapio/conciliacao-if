@@ -25,6 +25,7 @@ interface Tarefa {
   valor: number;
   data: Date;
   tipo: 'cancelar' | 'contestar';
+  status: 'aberto' | 'finalizado';
   lojaId: string;
   regionalId: string;
 }
@@ -49,14 +50,14 @@ const mockLojas: Loja[] = [
 ];
 
 const mockTarefas: Tarefa[] = [
-  { id: '1', numeroPedidoIfood: 'IF-001234', numeroPedidoVarejo: 'NF-2024-0001', valor: 125.50, data: new Date('2024-01-15'), tipo: 'cancelar', lojaId: '1', regionalId: '2' },
-  { id: '2', numeroPedidoIfood: 'IF-001235', numeroPedidoVarejo: 'NF-2024-0002', valor: 89.90, data: new Date('2024-01-15'), tipo: 'contestar', lojaId: '2', regionalId: '5' },
-  { id: '3', numeroPedidoIfood: 'IF-001236', numeroPedidoVarejo: 'NF-2024-0003', valor: 234.00, data: new Date('2024-01-14'), tipo: 'cancelar', lojaId: '3', regionalId: '1' },
-  { id: '4', numeroPedidoIfood: 'IF-001237', numeroPedidoVarejo: 'NF-2024-0004', valor: 56.75, data: new Date('2024-01-14'), tipo: 'contestar', lojaId: '1', regionalId: '2' },
-  { id: '5', numeroPedidoIfood: 'IF-001238', numeroPedidoVarejo: 'NF-2024-0005', valor: 178.30, data: new Date('2024-01-13'), tipo: 'cancelar', lojaId: '5', regionalId: '2' },
-  { id: '6', numeroPedidoIfood: 'IF-001239', numeroPedidoVarejo: 'NF-2024-0006', valor: 312.00, data: new Date('2024-01-13'), tipo: 'contestar', lojaId: '4', regionalId: '3' },
-  { id: '7', numeroPedidoIfood: 'IF-001240', numeroPedidoVarejo: 'NF-2024-0007', valor: 45.50, data: new Date('2024-01-12'), tipo: 'cancelar', lojaId: '6', regionalId: '5' },
-  { id: '8', numeroPedidoIfood: 'IF-001241', numeroPedidoVarejo: 'NF-2024-0008', valor: 199.99, data: new Date('2024-01-12'), tipo: 'contestar', lojaId: '7', regionalId: '1' },
+  { id: '1', numeroPedidoIfood: 'IF-001234', numeroPedidoVarejo: 'NF-2024-0001', valor: 125.50, data: new Date('2024-01-15'), tipo: 'cancelar', status: 'aberto', lojaId: '1', regionalId: '2' },
+  { id: '2', numeroPedidoIfood: 'IF-001235', numeroPedidoVarejo: 'NF-2024-0002', valor: 89.90, data: new Date('2024-01-15'), tipo: 'contestar', status: 'finalizado', lojaId: '2', regionalId: '5' },
+  { id: '3', numeroPedidoIfood: 'IF-001236', numeroPedidoVarejo: 'NF-2024-0003', valor: 234.00, data: new Date('2024-01-14'), tipo: 'cancelar', status: 'aberto', lojaId: '3', regionalId: '1' },
+  { id: '4', numeroPedidoIfood: 'IF-001237', numeroPedidoVarejo: 'NF-2024-0004', valor: 56.75, data: new Date('2024-01-14'), tipo: 'contestar', status: 'finalizado', lojaId: '1', regionalId: '2' },
+  { id: '5', numeroPedidoIfood: 'IF-001238', numeroPedidoVarejo: 'NF-2024-0005', valor: 178.30, data: new Date('2024-01-13'), tipo: 'cancelar', status: 'aberto', lojaId: '5', regionalId: '2' },
+  { id: '6', numeroPedidoIfood: 'IF-001239', numeroPedidoVarejo: 'NF-2024-0006', valor: 312.00, data: new Date('2024-01-13'), tipo: 'contestar', status: 'aberto', lojaId: '4', regionalId: '3' },
+  { id: '7', numeroPedidoIfood: 'IF-001240', numeroPedidoVarejo: 'NF-2024-0007', valor: 45.50, data: new Date('2024-01-12'), tipo: 'cancelar', status: 'finalizado', lojaId: '6', regionalId: '5' },
+  { id: '8', numeroPedidoIfood: 'IF-001241', numeroPedidoVarejo: 'NF-2024-0008', valor: 199.99, data: new Date('2024-01-12'), tipo: 'contestar', status: 'aberto', lojaId: '7', regionalId: '1' },
 ];
 
 const tiposTarefa = [
@@ -145,6 +146,20 @@ const Tarefas: React.FC = () => {
 
   const getLojaNome = (lojaId: string) => {
     return mockLojas.find(l => l.id === lojaId)?.nome || '-';
+  };
+
+  const getRegionalNome = (regionalId: string) => {
+    return mockRegionais.find(r => r.id === regionalId)?.nome || '-';
+  };
+
+  const getStatusLabel = (status: 'aberto' | 'finalizado') => {
+    return status === 'aberto' ? 'Aberto' : 'Finalizado';
+  };
+
+  const getStatusBadgeClass = (status: 'aberto' | 'finalizado') => {
+    return status === 'aberto'
+      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+      : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
   };
 
   return (
@@ -324,29 +339,35 @@ const Tarefas: React.FC = () => {
               <thead>
                 <tr className="border-b border-border bg-muted/30">
                   <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">
+                    Data
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">
                     Pedido iFood
                   </th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">
                     Pedido Varejo
                   </th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">
-                    Loja
+                    Regional
                   </th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">
-                    Tipo
+                    Loja
                   </th>
                   <th className="text-right py-4 px-6 text-sm font-medium text-muted-foreground">
                     Valor
                   </th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">
-                    Data
+                    Tipo
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">
+                    Status
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTarefas.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-muted-foreground">
+                    <td colSpan={8} className="py-12 text-center text-muted-foreground">
                       <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       <p>Nenhuma tarefa encontrada</p>
                     </td>
@@ -355,13 +376,24 @@ const Tarefas: React.FC = () => {
                   filteredTarefas.map((tarefa) => (
                     <tr key={tarefa.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                       <td className="py-4 px-6">
+                        <span className="text-sm text-muted-foreground">
+                          {format(tarefa.data, "dd/MM/yyyy", { locale: ptBR })}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
                         <span className="font-mono text-sm text-foreground">{tarefa.numeroPedidoIfood}</span>
                       </td>
                       <td className="py-4 px-6">
                         <span className="font-mono text-sm text-foreground">{tarefa.numeroPedidoVarejo}</span>
                       </td>
                       <td className="py-4 px-6">
+                        <span className="text-sm text-foreground">{getRegionalNome(tarefa.regionalId)}</span>
+                      </td>
+                      <td className="py-4 px-6">
                         <span className="text-sm text-foreground">{getLojaNome(tarefa.lojaId)}</span>
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <span className="font-medium text-foreground">{formatCurrency(tarefa.valor)}</span>
                       </td>
                       <td className="py-4 px-6">
                         <span className={cn(
@@ -371,12 +403,12 @@ const Tarefas: React.FC = () => {
                           {getTipoLabel(tarefa.tipo)}
                         </span>
                       </td>
-                      <td className="py-4 px-6 text-right">
-                        <span className="font-medium text-foreground">{formatCurrency(tarefa.valor)}</span>
-                      </td>
                       <td className="py-4 px-6">
-                        <span className="text-sm text-muted-foreground">
-                          {format(tarefa.data, "dd/MM/yyyy", { locale: ptBR })}
+                        <span className={cn(
+                          "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
+                          getStatusBadgeClass(tarefa.status)
+                        )}>
+                          {getStatusLabel(tarefa.status)}
                         </span>
                       </td>
                     </tr>

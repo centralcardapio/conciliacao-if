@@ -5,152 +5,178 @@ import {
   LayoutDashboard, 
   Store, 
   Package, 
-  Users, 
   TrendingUp, 
-  Clock 
+  TrendingDown,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  RefreshCw,
+  ClipboardList,
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
 
-  const getRoleGreeting = () => {
-    switch (user?.role) {
-      case 'loja':
-        return `Loja ${user.loja || ''}`;
-      case 'regional':
-        return `Regional ${user.regiao || ''}`;
-      case 'corporativo':
-        return user.empresa || 'Corporativo';
-      default:
-        return '';
-    }
-  };
-
   const stats = [
     {
-      title: 'Vendas do Dia',
-      value: 'R$ 45.678',
-      icon: TrendingUp,
-      change: '+12%',
+      title: 'Pedidos Conciliados',
+      value: '1.247',
+      icon: CheckCircle2,
+      change: '+8,3%',
       changeType: 'positive' as const,
+      description: 'vs mês anterior',
     },
     {
       title: 'Pedidos Pendentes',
       value: '23',
-      icon: Package,
-      change: '-5',
-      changeType: 'negative' as const,
+      icon: Clock,
+      change: '-12',
+      changeType: 'positive' as const,
+      description: 'vs ontem',
     },
+    {
+      title: 'Divergências',
+      value: '15',
+      icon: AlertCircle,
+      change: '+3',
+      changeType: 'negative' as const,
+      description: 'aguardando análise',
+    },
+    {
+      title: 'Tarefas Abertas',
+      value: '8',
+      icon: ClipboardList,
+      change: '5 cancelar, 3 contestar',
+      changeType: 'neutral' as const,
+      description: '',
+    },
+  ];
+
+  const financialStats = [
+    {
+      title: 'Volume Conciliado',
+      value: 'R$ 458.932,00',
+      icon: TrendingUp,
+      change: '+15,2%',
+      changeType: 'positive' as const,
+    },
+    {
+      title: 'Valor em Divergência',
+      value: 'R$ 3.245,80',
+      icon: TrendingDown,
+      change: '0,7% do total',
+      changeType: 'neutral' as const,
+    },
+  ];
+
+  const operationalStats = [
     {
       title: 'Lojas Ativas',
       value: user?.role === 'corporativo' ? '156' : user?.role === 'regional' ? '24' : '1',
       icon: Store,
-      change: user?.role === 'corporativo' ? '+3' : undefined,
-      changeType: 'positive' as const,
     },
     {
-      title: 'Última Atualização',
-      value: 'Há 5 min',
-      icon: Clock,
+      title: 'Última Atualização iFood',
+      value: 'Há 2 horas',
+      icon: RefreshCw,
+    },
+    {
+      title: 'Uploads Hoje',
+      value: '12',
+      icon: Package,
     },
   ];
 
+  const getChangeColor = (type: 'positive' | 'negative' | 'neutral') => {
+    switch (type) {
+      case 'positive':
+        return 'text-green-600 dark:text-green-400';
+      case 'negative':
+        return 'text-red-600 dark:text-red-400';
+      default:
+        return 'text-muted-foreground';
+    }
+  };
+
   return (
     <Layout title="Dashboard">
-      <div className="space-y-8">
-        {/* Welcome Section */}
-        <div className="animate-fade-in">
-          <h1 className="text-3xl font-bold text-foreground">
-            Bem-vindo, {user?.name}!
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {getRoleGreeting()} • {new Date().toLocaleDateString('pt-BR', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </p>
+      <div className="space-y-6">
+        {/* Header Card */}
+        <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-foreground/5 rounded-xl flex items-center justify-center flex-shrink-0">
+              <LayoutDashboard className="w-6 h-6 text-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-muted-foreground mt-1">
+                Visão geral das conciliações e indicadores do sistema.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Main Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
             <div 
               key={stat.title}
-              className="bg-card border border-border rounded-lg p-6 hover:shadow-sm transition-shadow animate-fade-in"
-              style={{ animationDelay: `${index * 100}ms` }}
+              className="bg-card border border-border rounded-xl p-5 hover:shadow-sm transition-shadow animate-fade-in"
+              style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 bg-foreground/5 rounded-lg flex items-center justify-center">
+                  <stat.icon className="w-5 h-5 text-foreground" />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">{stat.title}</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
+              <p className={`text-sm mt-2 ${getChangeColor(stat.changeType)}`}>
+                {stat.change} {stat.description && <span className="text-muted-foreground">{stat.description}</span>}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Financial Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {financialStats.map((stat, index) => (
+            <div 
+              key={stat.title}
+              className="bg-card border border-border rounded-xl p-6 animate-fade-in"
+              style={{ animationDelay: `${(index + 4) * 50}ms` }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-foreground/5 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <stat.icon className="w-6 h-6 text-foreground" />
+                </div>
+                <div className="flex-1">
                   <p className="text-sm text-muted-foreground">{stat.title}</p>
                   <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
-                  {stat.change && (
-                    <p className={`text-sm mt-1 ${
-                      stat.changeType === 'positive' ? 'text-success' : 'text-destructive'
-                    }`}>
-                      {stat.change} vs ontem
-                    </p>
-                  )}
                 </div>
-                <div className="w-10 h-10 bg-secondary rounded-md flex items-center justify-center">
-                  <stat.icon className="w-5 h-5 text-muted-foreground" />
+                <div className={`text-sm font-medium ${getChangeColor(stat.changeType)}`}>
+                  {stat.change}
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-card border border-border rounded-lg p-6 animate-fade-in">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Ações Rápidas</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {user?.role === 'corporativo' && (
-              <>
-                <button className="btn-secondary flex items-center justify-center gap-2 py-4">
-                  <Users className="w-5 h-5" />
-                  <span>Gestão Usuários</span>
-                </button>
-                <button className="btn-secondary flex items-center justify-center gap-2 py-4">
-                  <Store className="w-5 h-5" />
-                  <span>Gestão Lojas</span>
-                </button>
-              </>
-            )}
-            <button className="btn-secondary flex items-center justify-center gap-2 py-4">
-              <Package className="w-5 h-5" />
-              <span>Base Pedidos</span>
-            </button>
-            <button className="btn-secondary flex items-center justify-center gap-2 py-4">
-              <LayoutDashboard className="w-5 h-5" />
-              <span>Relatórios</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Activity Placeholder */}
-        <div className="bg-card border border-border rounded-lg p-6 animate-fade-in">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Atividade Recente</h2>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div 
-                key={i}
-                className="flex items-center gap-4 p-4 bg-secondary rounded-md"
-              >
-                <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center">
-                  <Package className="w-5 h-5 text-muted-foreground" />
+        {/* Operational Stats */}
+        <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
+          <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+            Informações Operacionais
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {operationalStats.map((stat) => (
+              <div key={stat.title} className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-foreground/5 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <stat.icon className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">
-                    Conciliação #{1000 + i} processada
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Há {i * 15} minutos • {i === 1 ? 'Loja Centro' : i === 2 ? 'Loja Norte' : 'Loja Sul'}
-                  </p>
+                <div>
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                  <p className="text-lg font-semibold text-foreground">{stat.value}</p>
                 </div>
-                <span className="text-xs font-medium text-success bg-success/10 px-2 py-1 rounded">
-                  Concluído
-                </span>
               </div>
             ))}
           </div>

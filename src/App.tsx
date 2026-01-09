@@ -70,7 +70,7 @@ const App = () => (
                 <Usuarios />
               </ProtectedRoute>
             } />
-            <Route path="/gestao-credenciais" element={
+            <Route path="/credenciais-ifood" element={
               <ProtectedRoute>
                 <GestaoCredenciaisIfood />
               </ProtectedRoute>

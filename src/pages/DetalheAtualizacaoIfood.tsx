@@ -20,6 +20,9 @@ interface BatchLog {
 
 interface Pedido {
   id: string;
+  idIfood: string;
+  data: Date;
+  loja: string;
   numeroPedido: string;
   valor: number;
   status: 'processado' | 'erro' | 'pendente';
@@ -59,14 +62,22 @@ const mockBatchLogs: BatchLog[] = [
 ];
 
 // Mock pedidos for detail view
-const generateMockPedidos = (count: number): Pedido[] => {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `${i + 1}`,
-    numeroPedido: `PED-${String(Math.floor(Math.random() * 900000) + 100000)}`,
-    valor: Math.floor(Math.random() * 500) + 20,
-    status: Math.random() > 0.1 ? 'processado' : (Math.random() > 0.5 ? 'erro' : 'pendente'),
-    mensagemErro: Math.random() > 0.9 ? 'Dados do pedido incompletos' : undefined,
-  }));
+const generateMockPedidos = (count: number, lojaId: string): Pedido[] => {
+  const lojaName = mockLojas.find(l => l.id === lojaId)?.nome || 'Loja';
+  return Array.from({ length: count }, (_, i) => {
+    const randomDays = Math.floor(Math.random() * 7);
+    const randomHours = Math.floor(Math.random() * 12) + 8;
+    return {
+      id: `${i + 1}`,
+      idIfood: `IF-${String(Math.floor(Math.random() * 9000000) + 1000000)}`,
+      data: new Date(2026, 0, 8 - randomDays, randomHours, Math.floor(Math.random() * 60)),
+      loja: lojaName,
+      numeroPedido: `PED-${String(Math.floor(Math.random() * 900000) + 100000)}`,
+      valor: Math.floor(Math.random() * 500) + 20,
+      status: Math.random() > 0.1 ? 'processado' : (Math.random() > 0.5 ? 'erro' : 'pendente'),
+      mensagemErro: Math.random() > 0.9 ? 'Dados do pedido incompletos' : undefined,
+    };
+  });
 };
 
 const DetalheAtualizacaoIfood: React.FC = () => {
@@ -74,7 +85,7 @@ const DetalheAtualizacaoIfood: React.FC = () => {
   const navigate = useNavigate();
 
   const log = mockBatchLogs.find(l => l.id === id);
-  const pedidos = log ? generateMockPedidos(log.pedidosProcessados || 10) : [];
+  const pedidos = log ? generateMockPedidos(log.pedidosProcessados || 10, log.lojaId) : [];
 
   const getLojaName = (lojaId: string) => mockLojas.find(l => l.id === lojaId)?.nome || '-';
   const getRegionalName = (regionalId: string) => mockRegionais.find(r => r.id === regionalId)?.nome || '-';
@@ -279,6 +290,15 @@ const DetalheAtualizacaoIfood: React.FC = () => {
                 <thead>
                   <tr className="bg-foreground/5 border-b border-border">
                     <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
+                      ID iFood
+                    </th>
+                    <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
+                      Data
+                    </th>
+                    <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
+                      Loja
+                    </th>
+                    <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
                       Nº Pedido
                     </th>
                     <th className="text-right px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
@@ -299,6 +319,17 @@ const DetalheAtualizacaoIfood: React.FC = () => {
                       className="group hover:bg-secondary/40 transition-colors"
                       style={{ animationDelay: `${index * 30}ms` }}
                     >
+                      <td className="px-6 py-4">
+                        <span className="font-mono text-sm text-foreground">{pedido.idIfood}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-foreground">
+                          {format(pedido.data, "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-foreground">{pedido.loja}</span>
+                      </td>
                       <td className="px-6 py-4">
                         <span className="font-mono text-sm text-foreground">{pedido.numeroPedido}</span>
                       </td>

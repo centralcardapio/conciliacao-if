@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { RefreshCw, Calendar, Building2, Store, CheckCircle, XCircle, Clock, AlertTriangle, Filter, Eye, Download } from 'lucide-react';
+import { RefreshCw, Calendar, Building2, Store, CheckCircle, XCircle, Clock, AlertTriangle, Filter, Eye, Download, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -62,6 +62,11 @@ const mockBatchLogs: BatchLog[] = [
   { id: '10', dataExecucao: new Date('2026-01-05T06:00:00'), regionalId: '2', lojaId: '5', status: 'cancelado', pedidosProcessados: 0, pedidosComErro: 0, duracaoSegundos: 8, mensagem: 'Cancelado por timeout' },
 ];
 
+type SortField = 'dataExecucao' | 'regional' | 'loja' | 'status' | 'pedidosProcessados';
+type SortDirection = 'asc' | 'desc';
+
+const ITEMS_PER_PAGE = 10;
+
 const AtualizacaoIfood: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
@@ -69,11 +74,24 @@ const AtualizacaoIfood: React.FC = () => {
   const [selectedLojas, setSelectedLojas] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [lojasDropdownOpen, setLojasDropdownOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>('dataExecucao');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const filteredLojas = useMemo(() => {
     if (!selectedRegional) return mockLojas;
     return mockLojas.filter(loja => loja.regionalId === selectedRegional);
   }, [selectedRegional]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+    setCurrentPage(1);
+  };
 
   const handleRegionalChange = (value: string) => {
     setSelectedRegional(value);
@@ -119,6 +137,45 @@ const AtualizacaoIfood: React.FC = () => {
       return true;
     });
   }, [dateFrom, dateTo, selectedRegional, selectedLojas, selectedStatus]);
+
+  const sortedLogs = useMemo(() => {
+    return [...filteredLogs].sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case 'dataExecucao':
+          comparison = a.dataExecucao.getTime() - b.dataExecucao.getTime();
+          break;
+        case 'regional':
+          comparison = getRegionalName(a.regionalId).localeCompare(getRegionalName(b.regionalId), 'pt-BR');
+          break;
+        case 'loja':
+          comparison = getLojaName(a.lojaId).localeCompare(getLojaName(b.lojaId), 'pt-BR');
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+        case 'pedidosProcessados':
+          comparison = a.pedidosProcessados - b.pedidosProcessados;
+          break;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredLogs, sortField, sortDirection]);
+
+  const totalPages = Math.ceil(sortedLogs.length / ITEMS_PER_PAGE);
+  const paginatedLogs = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return sortedLogs.slice(start, start + ITEMS_PER_PAGE);
+  }, [sortedLogs, currentPage]);
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 text-muted-foreground" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="w-4 h-4 text-foreground" />
+      : <ArrowDown className="w-4 h-4 text-foreground" />;
+  };
 
   const getStatusIcon = (status: BatchLog['status']) => {
     switch (status) {
@@ -375,35 +432,96 @@ const AtualizacaoIfood: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Data/Hora</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Regional</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Loja</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Processados</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Ações</th>
+                <tr className="bg-foreground/5 border-b border-border">
+                  <th className="text-left px-6 py-4">
+                    <button
+                      onClick={() => handleSort('dataExecucao')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      Data/Hora
+                      <SortIcon field="dataExecucao" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button
+                      onClick={() => handleSort('regional')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      Regional
+                      <SortIcon field="regional" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button
+                      onClick={() => handleSort('loja')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      Loja
+                      <SortIcon field="loja" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button
+                      onClick={() => handleSort('status')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      Status
+                      <SortIcon field="status" />
+                    </button>
+                  </th>
+                  <th className="text-right px-6 py-4">
+                    <button
+                      onClick={() => handleSort('pedidosProcessados')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors ml-auto"
+                    >
+                      Processados
+                      <SortIcon field="pedidosProcessados" />
+                    </button>
+                  </th>
+                  <th className="text-right px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-28">
+                    Ações
+                  </th>
                 </tr>
               </thead>
-              <tbody>
-                {filteredLogs.length === 0 ? (
+              <tbody className="divide-y divide-border">
+                {sortedLogs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                      Nenhum registro encontrado para os filtros selecionados.
+                    <td colSpan={6} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
+                          <RefreshCw className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-foreground font-medium">Nenhum registro encontrado</p>
+                          <p className="text-sm text-muted-foreground mt-1">Tente ajustar os filtros</p>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ) : (
-                  filteredLogs.map((log) => (
-                    <tr key={log.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                      <td className="p-4 text-sm text-foreground">
-                        {format(log.dataExecucao, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  paginatedLogs.map((log, index) => (
+                    <tr 
+                      key={log.id} 
+                      className="group hover:bg-secondary/40 transition-colors"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-foreground">
+                          {format(log.dataExecucao, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
                       </td>
-                      <td className="p-4 text-sm text-foreground">
-                        {getRegionalName(log.regionalId)}
+                      <td className="px-6 py-4">
+                        <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">
+                          {getRegionalName(log.regionalId)}
+                        </span>
                       </td>
-                      <td className="p-4 text-sm text-foreground">
-                        {getLojaName(log.lojaId)}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <Store className="w-4 h-4 text-foreground/70" />
+                          <span className="font-medium text-foreground text-sm">{getLojaName(log.lojaId)}</span>
+                        </div>
                       </td>
-                      <td className="p-4">
+                      <td className="px-6 py-4">
                         <span className={cn(
                           "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
                           getStatusClass(log.status)
@@ -412,10 +530,10 @@ const AtualizacaoIfood: React.FC = () => {
                           {getStatusLabel(log.status)}
                         </span>
                       </td>
-                      <td className="p-4 text-sm text-foreground text-right font-medium">
+                      <td className="px-6 py-4 text-sm text-foreground text-right font-medium">
                         {log.pedidosProcessados.toLocaleString('pt-BR')}
                       </td>
-                      <td className="p-4">
+                      <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
@@ -436,6 +554,50 @@ const AtualizacaoIfood: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination Footer */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-secondary/30">
+            <span className="text-sm text-muted-foreground">
+              Mostrando {paginatedLogs.length} de {sortedLogs.length} {sortedLogs.length === 1 ? 'registro' : 'registros'}
+            </span>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={cn(
+                        "inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm font-medium transition-colors",
+                        currentPage === page
+                          ? "bg-foreground text-background"
+                          : "border border-border bg-background text-foreground hover:bg-secondary"
+                      )}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

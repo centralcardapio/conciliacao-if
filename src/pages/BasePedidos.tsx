@@ -32,7 +32,7 @@ interface Pedido {
   valorIfood: number;
 }
 
-type SortField = 'nfIfood' | 'nfErp' | 'dataErp' | 'dataIfood' | 'loja' | 'valorErp' | 'valorIfood';
+type SortField = 'nfIfood' | 'nfErp' | 'dataErp' | 'dataIfood' | 'loja' | 'regional' | 'valorErp' | 'valorIfood';
 type SortDirection = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 50;
@@ -182,6 +182,9 @@ const BasePedidos: React.FC = () => {
           break;
         case 'loja':
           comparison = a.loja.localeCompare(b.loja);
+          break;
+        case 'regional':
+          comparison = a.regional.localeCompare(b.regional);
           break;
         case 'valorErp':
           comparison = a.valorErp - b.valorErp;
@@ -463,8 +466,11 @@ const BasePedidos: React.FC = () => {
                       <SortIcon field="valorErp" />
                     </button>
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
-                    Regional
+                  <th className="text-left px-6 py-4">
+                    <button onClick={() => handleSort('regional')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      Regional
+                      <SortIcon field="regional" />
+                    </button>
                   </th>
                   <th className="text-left px-6 py-4">
                     <button onClick={() => handleSort('loja')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">

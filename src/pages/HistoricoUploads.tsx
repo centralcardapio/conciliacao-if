@@ -305,11 +305,6 @@ const HistoricoUploads: React.FC = () => {
                               {upload.periodoInicio ?? '-'} a {upload.periodoFim ?? '-'}
                             </span>
                           </div>
-                          {(upload.erros ?? 0) > 0 && (
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="text-destructive">{upload.erros} erros</span>
-                            </div>
-                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">

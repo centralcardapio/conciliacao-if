@@ -181,7 +181,7 @@ const AtualizacaoIfood: React.FC = () => {
   }, [filteredLogs]);
 
   return (
-    <Layout title="Atualização iFood">
+    <Layout title="Histórico iFood">
       <div className="space-y-6">
         {/* Header Card */}
         <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">

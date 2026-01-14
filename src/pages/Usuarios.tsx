@@ -319,15 +319,6 @@ const Usuarios: React.FC = () => {
                   </th>
                   <th className="text-left px-6 py-4">
                     <button
-                      onClick={() => handleSort('tipo')}
-                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
-                    >
-                      Tipo
-                      <SortIcon field="tipo" />
-                    </button>
-                  </th>
-                  <th className="text-left px-6 py-4">
-                    <button
                       onClick={() => handleSort('regional')}
                       className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
                     >
@@ -342,6 +333,15 @@ const Usuarios: React.FC = () => {
                     >
                       Loja
                       <SortIcon field="loja" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button
+                      onClick={() => handleSort('tipo')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      Tipo
+                      <SortIcon field="tipo" />
                     </button>
                   </th>
                   <th className="text-right px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-28">
@@ -394,11 +394,6 @@ const Usuarios: React.FC = () => {
                         <span className="text-muted-foreground">{usuario.email}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex px-2.5 py-1 bg-foreground/10 rounded-md text-sm font-medium text-foreground">
-                          {getTipoLabel(usuario.tipo)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
                         <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">
                           {getRegionalNome(usuario.regionalId)}
                         </span>
@@ -406,6 +401,11 @@ const Usuarios: React.FC = () => {
                       <td className="px-6 py-4">
                         <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">
                           {getLojaNome(usuario.lojaId)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex px-2.5 py-1 bg-foreground/10 rounded-md text-sm font-medium text-foreground">
+                          {getTipoLabel(usuario.tipo)}
                         </span>
                       </td>
                       <td className="px-6 py-4">

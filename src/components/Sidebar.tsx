@@ -96,23 +96,23 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       id: 'configuracoes',
       label: 'Configurações',
       items: [
-        { id: 'credenciais-ifood', label: 'Credenciais iFood', icon: 'Key', path: '/credenciais-ifood' },
         { id: 'configurar-parametros', label: 'Parâmetros', icon: 'Settings', path: '/configurar-parametros' },
       ],
     },
     {
-      id: 'uploads',
-      label: 'Uploads',
+      id: 'ifood',
+      label: 'iFood',
       items: [
-        { id: 'upload-vendas', label: 'Upload Vendas', icon: 'Upload', path: '/upload-vendas' },
-        { id: 'historico-uploads', label: 'Histórico de Uploads', icon: 'History', path: '/historico-uploads' },
+        { id: 'credenciais-ifood', label: 'Credenciais', icon: 'Key', path: '/credenciais-ifood' },
+        { id: 'historico-ifood', label: 'Histórico', icon: 'RefreshCw', path: '/historico-ifood' },
       ],
     },
     {
-      id: 'historico-ifood',
-      label: 'Atualização iFood',
+      id: 'erp',
+      label: 'ERP',
       items: [
-        { id: 'historico-ifood', label: 'Histórico Atualizações', icon: 'RefreshCw', path: '/historico-ifood' },
+        { id: 'upload-vendas', label: 'Upload Vendas', icon: 'Upload', path: '/upload-vendas' },
+        { id: 'historico-uploads', label: 'Histórico', icon: 'History', path: '/historico-uploads' },
       ],
     },
     {

@@ -104,7 +104,7 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       id: 'erp',
       label: 'ERP',
       items: [
-        { id: 'upload-vendas', label: 'Upload Vendas', icon: 'Upload', path: '/upload-vendas' },
+        { id: 'upload-vendas', label: 'Vendas', icon: 'Upload', path: '/upload-vendas' },
         { id: 'historico-uploads', label: 'Histórico', icon: 'History', path: '/historico-uploads' },
       ],
     },

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import { Plus, Pencil, Trash2, X, Search, Users, AlertTriangle, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { z } from 'zod';
+import { UserRole } from '@/types';
 
 interface Regional {
   id: string;
@@ -18,16 +19,24 @@ interface Usuario {
   id: string;
   nome: string;
   email: string;
+  tipo: UserRole;
   regionalId: string;
   lojaId: string;
 }
 
-type SortField = 'id' | 'nome' | 'email' | 'regional' | 'loja';
+type SortField = 'id' | 'nome' | 'email' | 'tipo' | 'regional' | 'loja';
 type SortDirection = 'asc' | 'desc';
+
+const tipoOptions: { value: UserRole; label: string }[] = [
+  { value: 'loja', label: 'Loja' },
+  { value: 'regional', label: 'Regional' },
+  { value: 'corporativo', label: 'Corporativo' },
+];
 
 const usuarioSchema = z.object({
   nome: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
   email: z.string().trim().email('Email inválido').max(255, 'Email deve ter no máximo 255 caracteres'),
+  tipo: z.enum(['loja', 'regional', 'corporativo'], { required_error: 'Tipo é obrigatório' }),
   regionalId: z.string().min(1, 'Regional é obrigatória'),
   lojaId: z.string().min(1, 'Loja é obrigatória'),
 });
@@ -53,11 +62,11 @@ const mockLojas: Loja[] = [
 
 const Usuarios: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([
-    { id: '1', nome: 'João Silva', email: 'joao@empresa.com', regionalId: '2', lojaId: '1' },
-    { id: '2', nome: 'Maria Santos', email: 'maria@empresa.com', regionalId: '1', lojaId: '3' },
-    { id: '3', nome: 'Carlos Oliveira', email: 'carlos@empresa.com', regionalId: '5', lojaId: '2' },
-    { id: '4', nome: 'Ana Costa', email: 'ana@empresa.com', regionalId: '3', lojaId: '4' },
-    { id: '5', nome: 'Pedro Lima', email: 'pedro@empresa.com', regionalId: '2', lojaId: '5' },
+    { id: '1', nome: 'João Silva', email: 'joao@empresa.com', tipo: 'loja', regionalId: '2', lojaId: '1' },
+    { id: '2', nome: 'Maria Santos', email: 'maria@empresa.com', tipo: 'regional', regionalId: '1', lojaId: '3' },
+    { id: '3', nome: 'Carlos Oliveira', email: 'carlos@empresa.com', tipo: 'corporativo', regionalId: '5', lojaId: '2' },
+    { id: '4', nome: 'Ana Costa', email: 'ana@empresa.com', tipo: 'loja', regionalId: '3', lojaId: '4' },
+    { id: '5', nome: 'Pedro Lima', email: 'pedro@empresa.com', tipo: 'regional', regionalId: '2', lojaId: '5' },
   ]);
 
   const [regionais] = useState<Regional[]>(mockRegionais);
@@ -66,7 +75,7 @@ const Usuarios: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
   const [deletingUsuario, setDeletingUsuario] = useState<Usuario | null>(null);
-  const [formData, setFormData] = useState({ nome: '', email: '', regionalId: '', lojaId: '' });
+  const [formData, setFormData] = useState({ nome: '', email: '', tipo: '' as UserRole | '', regionalId: '', lojaId: '' });
   const [formError, setFormError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -79,6 +88,10 @@ const Usuarios: React.FC = () => {
 
   const getLojaNome = (lojaId: string) => {
     return lojas.find(l => l.id === lojaId)?.nome || '-';
+  };
+
+  const getTipoLabel = (tipo: UserRole) => {
+    return tipoOptions.find(t => t.value === tipo)?.label || '-';
   };
 
   const filteredLojasByRegional = useMemo(() => {
@@ -100,6 +113,7 @@ const Usuarios: React.FC = () => {
     const filtered = usuarios.filter(u => 
       u.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getTipoLabel(u.tipo).toLowerCase().includes(searchTerm.toLowerCase()) ||
       getRegionalNome(u.regionalId).toLowerCase().includes(searchTerm.toLowerCase()) ||
       getLojaNome(u.lojaId).toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -112,6 +126,8 @@ const Usuarios: React.FC = () => {
         comparison = a.nome.localeCompare(b.nome, 'pt-BR');
       } else if (sortField === 'email') {
         comparison = a.email.localeCompare(b.email, 'pt-BR');
+      } else if (sortField === 'tipo') {
+        comparison = getTipoLabel(a.tipo).localeCompare(getTipoLabel(b.tipo), 'pt-BR');
       } else if (sortField === 'regional') {
         comparison = getRegionalNome(a.regionalId).localeCompare(getRegionalNome(b.regionalId), 'pt-BR');
       } else {
@@ -143,7 +159,7 @@ const Usuarios: React.FC = () => {
 
   const openCreateModal = () => {
     setEditingUsuario(null);
-    setFormData({ nome: '', email: '', regionalId: '', lojaId: '' });
+    setFormData({ nome: '', email: '', tipo: '', regionalId: '', lojaId: '' });
     setFormError('');
     setIsModalOpen(true);
   };
@@ -153,6 +169,7 @@ const Usuarios: React.FC = () => {
     setFormData({ 
       nome: usuario.nome, 
       email: usuario.email, 
+      tipo: usuario.tipo,
       regionalId: usuario.regionalId, 
       lojaId: usuario.lojaId 
     });
@@ -168,7 +185,7 @@ const Usuarios: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingUsuario(null);
-    setFormData({ nome: '', email: '', regionalId: '', lojaId: '' });
+    setFormData({ nome: '', email: '', tipo: '', regionalId: '', lojaId: '' });
     setFormError('');
   };
 
@@ -199,6 +216,7 @@ const Usuarios: React.FC = () => {
                 ...u, 
                 nome: formData.nome.trim(), 
                 email: formData.email.trim(),
+                tipo: formData.tipo as UserRole,
                 regionalId: formData.regionalId,
                 lojaId: formData.lojaId 
               } 
@@ -210,6 +228,7 @@ const Usuarios: React.FC = () => {
         id: Date.now().toString(),
         nome: formData.nome.trim(),
         email: formData.email.trim(),
+        tipo: formData.tipo as UserRole,
         regionalId: formData.regionalId,
         lojaId: formData.lojaId,
       };
@@ -300,6 +319,15 @@ const Usuarios: React.FC = () => {
                   </th>
                   <th className="text-left px-6 py-4">
                     <button
+                      onClick={() => handleSort('tipo')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      Tipo
+                      <SortIcon field="tipo" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button
                       onClick={() => handleSort('regional')}
                       className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
                     >
@@ -324,7 +352,7 @@ const Usuarios: React.FC = () => {
               <tbody className="divide-y divide-border">
                 {sortedAndFilteredUsuarios.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-16 text-center">
+                    <td colSpan={7} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
                           <Users className="w-6 h-6 text-muted-foreground" />
@@ -364,6 +392,11 @@ const Usuarios: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-muted-foreground">{usuario.email}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex px-2.5 py-1 bg-foreground/10 rounded-md text-sm font-medium text-foreground">
+                          {getTipoLabel(usuario.tipo)}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">
@@ -501,6 +534,24 @@ const Usuarios: React.FC = () => {
                   placeholder="email@empresa.com"
                   className="w-full h-11 px-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
                 />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="tipo" className="block text-sm font-medium text-foreground">
+                  Tipo de Usuário
+                </label>
+                <select
+                  id="tipo"
+                  value={formData.tipo}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tipo: e.target.value as UserRole }))}
+                  className="w-full h-11 px-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+                >
+                  <option value="">Selecione o tipo</option>
+                  {tipoOptions.map(tipo => (
+                    <option key={tipo.value} value={tipo.value}>
+                      {tipo.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <label htmlFor="regional" className="block text-sm font-medium text-foreground">

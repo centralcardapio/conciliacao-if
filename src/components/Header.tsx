@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Menu, User, LogOut, Building2 } from 'lucide-react';
+import { ChevronDown, Menu, User, LogOut, Building2, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,6 +75,16 @@ const Header: React.FC<HeaderProps> = ({ title = 'Dashboard', onMenuToggle }) =>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Settings Button */}
+          {user?.role === 'corporativo' && (
+            <button
+              onClick={() => navigate('/configurar-parametros')}
+              className="p-2 hover:bg-secondary rounded-md transition-colors"
+              title="Parâmetros"
+            >
+              <Settings className="w-5 h-5 text-muted-foreground" />
+            </button>
+          )}
 
           {/* User Menu */}
           <DropdownMenu>

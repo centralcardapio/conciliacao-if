@@ -430,7 +430,7 @@ const Lojas: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <label htmlFor="idLojaErp" className="block text-sm font-medium text-foreground">
-                  ID Loja ERP
+                  ID ERP
                 </label>
                 <input
                   id="idLojaErp"
@@ -443,7 +443,7 @@ const Lojas: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <label htmlFor="idLojaIfood" className="block text-sm font-medium text-foreground">
-                  ID Loja iFood
+                  ID iFood
                 </label>
                 <input
                   id="idLojaIfood"

@@ -24,13 +24,15 @@ interface Pedido {
   id: string;
   nfIfood: string;
   nfErp: string;
-  data: string;
+  dataErp: string;
+  dataIfood: string;
   loja: string;
   regional: string;
-  valor: number;
+  valorErp: number;
+  valorIfood: number;
 }
 
-type SortField = 'nfIfood' | 'nfErp' | 'data' | 'loja' | 'valor';
+type SortField = 'nfIfood' | 'nfErp' | 'dataErp' | 'dataIfood' | 'loja' | 'valorErp' | 'valorIfood';
 type SortDirection = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 50;
@@ -56,16 +58,16 @@ const mockLojas: Loja[] = [
 
 // Mock pedidos data expandido
 const mockPedidos: Pedido[] = [
-  { id: '1', nfIfood: 'IF-001234', nfErp: 'NF-2024-0001', data: '2024-01-15', loja: 'Loja Centro', regional: 'Sudeste', valor: 125.50 },
-  { id: '2', nfIfood: 'IF-001235', nfErp: 'NF-2024-0002', data: '2024-01-15', loja: 'Loja Norte', regional: 'Norte', valor: 89.90 },
-  { id: '3', nfIfood: 'IF-001236', nfErp: 'NF-2024-0003', data: '2024-01-14', loja: 'Loja Sul', regional: 'Sul', valor: 234.00 },
-  { id: '4', nfIfood: 'IF-001237', nfErp: 'NF-2024-0004', data: '2024-01-14', loja: 'Loja Oeste', regional: 'Centro-Oeste', valor: 156.75 },
-  { id: '5', nfIfood: 'IF-001238', nfErp: 'NF-2024-0005', data: '2024-01-13', loja: 'Loja Leste', regional: 'Sudeste', valor: 312.40 },
-  { id: '6', nfIfood: 'IF-001239', nfErp: 'NF-2024-0006', data: '2024-01-13', loja: 'Loja Zona Norte', regional: 'Norte', valor: 78.25 },
-  { id: '7', nfIfood: 'IF-001240', nfErp: 'NF-2024-0007', data: '2024-01-12', loja: 'Loja Zona Sul', regional: 'Sul', valor: 445.00 },
-  { id: '8', nfIfood: 'IF-001241', nfErp: 'NF-2024-0008', data: '2024-01-12', loja: 'Loja Centro', regional: 'Sudeste', valor: 67.80 },
-  { id: '9', nfIfood: 'IF-001242', nfErp: 'NF-2024-0009', data: '2024-01-11', loja: 'Loja Norte', regional: 'Norte', valor: 198.30 },
-  { id: '10', nfIfood: 'IF-001243', nfErp: 'NF-2024-0010', data: '2024-01-11', loja: 'Loja Sul', regional: 'Sul', valor: 523.60 },
+  { id: '1', nfIfood: 'IF-001234', nfErp: 'NF-2024-0001', dataErp: '2024-01-15', dataIfood: '2024-01-15', loja: 'Loja Centro', regional: 'Sudeste', valorErp: 125.50, valorIfood: 125.50 },
+  { id: '2', nfIfood: 'IF-001235', nfErp: 'NF-2024-0002', dataErp: '2024-01-15', dataIfood: '2024-01-14', loja: 'Loja Norte', regional: 'Norte', valorErp: 89.90, valorIfood: 89.90 },
+  { id: '3', nfIfood: 'IF-001236', nfErp: 'NF-2024-0003', dataErp: '2024-01-14', dataIfood: '2024-01-14', loja: 'Loja Sul', regional: 'Sul', valorErp: 234.00, valorIfood: 230.00 },
+  { id: '4', nfIfood: 'IF-001237', nfErp: 'NF-2024-0004', dataErp: '2024-01-14', dataIfood: '2024-01-13', loja: 'Loja Oeste', regional: 'Centro-Oeste', valorErp: 156.75, valorIfood: 156.75 },
+  { id: '5', nfIfood: 'IF-001238', nfErp: 'NF-2024-0005', dataErp: '2024-01-13', dataIfood: '2024-01-13', loja: 'Loja Leste', regional: 'Sudeste', valorErp: 312.40, valorIfood: 315.00 },
+  { id: '6', nfIfood: 'IF-001239', nfErp: 'NF-2024-0006', dataErp: '2024-01-13', dataIfood: '2024-01-12', loja: 'Loja Zona Norte', regional: 'Norte', valorErp: 78.25, valorIfood: 78.25 },
+  { id: '7', nfIfood: 'IF-001240', nfErp: 'NF-2024-0007', dataErp: '2024-01-12', dataIfood: '2024-01-12', loja: 'Loja Zona Sul', regional: 'Sul', valorErp: 445.00, valorIfood: 445.00 },
+  { id: '8', nfIfood: 'IF-001241', nfErp: 'NF-2024-0008', dataErp: '2024-01-12', dataIfood: '2024-01-11', loja: 'Loja Centro', regional: 'Sudeste', valorErp: 67.80, valorIfood: 70.00 },
+  { id: '9', nfIfood: 'IF-001242', nfErp: 'NF-2024-0009', dataErp: '2024-01-11', dataIfood: '2024-01-11', loja: 'Loja Norte', regional: 'Norte', valorErp: 198.30, valorIfood: 198.30 },
+  { id: '10', nfIfood: 'IF-001243', nfErp: 'NF-2024-0010', dataErp: '2024-01-11', dataIfood: '2024-01-10', loja: 'Loja Sul', regional: 'Sul', valorErp: 523.60, valorIfood: 520.00 },
 ];
 
 const BasePedidos: React.FC = () => {
@@ -77,7 +79,7 @@ const BasePedidos: React.FC = () => {
   const [lojasDropdownOpen, setLojasDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<SortField>('data');
+  const [sortField, setSortField] = useState<SortField>('dataErp');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const regionais = mockRegionais;
@@ -172,14 +174,20 @@ const BasePedidos: React.FC = () => {
         case 'nfErp':
           comparison = a.nfErp.localeCompare(b.nfErp);
           break;
-        case 'data':
-          comparison = a.data.localeCompare(b.data);
+        case 'dataErp':
+          comparison = a.dataErp.localeCompare(b.dataErp);
+          break;
+        case 'dataIfood':
+          comparison = a.dataIfood.localeCompare(b.dataIfood);
           break;
         case 'loja':
           comparison = a.loja.localeCompare(b.loja);
           break;
-        case 'valor':
-          comparison = a.valor - b.valor;
+        case 'valorErp':
+          comparison = a.valorErp - b.valorErp;
+          break;
+        case 'valorIfood':
+          comparison = a.valorIfood - b.valorIfood;
           break;
       }
       return sortDirection === 'asc' ? comparison : -comparison;
@@ -454,9 +462,15 @@ const BasePedidos: React.FC = () => {
                     </button>
                   </th>
                   <th className="text-left px-6 py-4">
-                    <button onClick={() => handleSort('data')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
-                      Data
-                      <SortIcon field="data" />
+                    <button onClick={() => handleSort('dataErp')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      Data ERP
+                      <SortIcon field="dataErp" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button onClick={() => handleSort('dataIfood')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      Data iFood
+                      <SortIcon field="dataIfood" />
                     </button>
                   </th>
                   <th className="text-left px-6 py-4">
@@ -469,9 +483,15 @@ const BasePedidos: React.FC = () => {
                     Regional
                   </th>
                   <th className="text-right px-6 py-4">
-                    <button onClick={() => handleSort('valor')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors ml-auto">
-                      Valor
-                      <SortIcon field="valor" />
+                    <button onClick={() => handleSort('valorErp')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors ml-auto">
+                      Valor ERP
+                      <SortIcon field="valorErp" />
+                    </button>
+                  </th>
+                  <th className="text-right px-6 py-4">
+                    <button onClick={() => handleSort('valorIfood')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors ml-auto">
+                      Valor iFood
+                      <SortIcon field="valorIfood" />
                     </button>
                   </th>
                 </tr>
@@ -487,7 +507,10 @@ const BasePedidos: React.FC = () => {
                         {pedido.nfErp}
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {formatDate(pedido.data)}
+                        {formatDate(pedido.dataErp)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {formatDate(pedido.dataIfood)}
                       </td>
                       <td className="px-6 py-4 text-sm text-foreground">
                         {pedido.loja}
@@ -496,13 +519,16 @@ const BasePedidos: React.FC = () => {
                         {pedido.regional}
                       </td>
                       <td className="px-6 py-4 text-sm text-foreground text-right font-medium">
-                        {formatCurrency(pedido.valor)}
+                        {formatCurrency(pedido.valorErp)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground text-right font-medium">
+                        {formatCurrency(pedido.valorIfood)}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={8} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <FileSpreadsheet className="w-8 h-8 text-muted-foreground/50" />
                         <p className="text-muted-foreground">Nenhum pedido encontrado</p>

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/Pagination';
-import { ClipboardList, Calendar, Building2, Store, Search, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, CheckCircle } from 'lucide-react';
+import { ClipboardList, Calendar, Building2, Store, Search, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, CheckCircle, XCircle, MessageSquareWarning, RefreshCw } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -341,6 +342,81 @@ const Tarefas: React.FC = () => {
               <p className="text-muted-foreground mt-1">Gerencie as tarefas originadas a partir das divergências nas conciliações.</p>
             </div>
           </div>
+        </div>
+
+        {/* Summary Cards by Task Type */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in">
+          {/* Cancelar Pedido */}
+          {(() => {
+            const cancelarTotal = mockTarefas.filter(t => t.tipo === 'cancelar').length;
+            const cancelarFinalizados = mockTarefas.filter(t => t.tipo === 'cancelar' && t.status === 'finalizado').length;
+            const cancelarPercent = cancelarTotal > 0 ? (cancelarFinalizados / cancelarTotal) * 100 : 0;
+            return (
+              <div className="bg-card border border-border rounded-xl p-5">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                      <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Cancelar Pedido</h3>
+                      <p className="text-sm text-muted-foreground">{cancelarFinalizados} de {cancelarTotal} finalizadas</p>
+                    </div>
+                  </div>
+                  <span className="text-lg font-bold text-foreground">{Math.round(cancelarPercent)}%</span>
+                </div>
+                <Progress value={cancelarPercent} className="h-2" />
+              </div>
+            );
+          })()}
+
+          {/* Contestar Pedido */}
+          {(() => {
+            const contestarTotal = mockTarefas.filter(t => t.tipo === 'contestar').length;
+            const contestarFinalizados = mockTarefas.filter(t => t.tipo === 'contestar' && t.status === 'finalizado').length;
+            const contestarPercent = contestarTotal > 0 ? (contestarFinalizados / contestarTotal) * 100 : 0;
+            return (
+              <div className="bg-card border border-border rounded-xl p-5">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
+                      <MessageSquareWarning className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Contestar Pedido</h3>
+                      <p className="text-sm text-muted-foreground">{contestarFinalizados} de {contestarTotal} finalizadas</p>
+                    </div>
+                  </div>
+                  <span className="text-lg font-bold text-foreground">{Math.round(contestarPercent)}%</span>
+                </div>
+                <Progress value={contestarPercent} className="h-2" />
+              </div>
+            );
+          })()}
+
+          {/* Alterar Pedido (placeholder - no data yet) */}
+          {(() => {
+            const alterarTotal = 0;
+            const alterarFinalizados = 0;
+            const alterarPercent = 0;
+            return (
+              <div className="bg-card border border-border rounded-xl p-5">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                      <RefreshCw className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Alterar Pedido</h3>
+                      <p className="text-sm text-muted-foreground">{alterarFinalizados} de {alterarTotal} finalizadas</p>
+                    </div>
+                  </div>
+                  <span className="text-lg font-bold text-foreground">{Math.round(alterarPercent)}%</span>
+                </div>
+                <Progress value={alterarPercent} className="h-2" />
+              </div>
+            );
+          })()}
         </div>
 
         {/* Filters Card */}

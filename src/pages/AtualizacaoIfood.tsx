@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { RefreshCw, Calendar, Building2, Store, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Calendar, Building2, Store, CheckCircle, XCircle, Clock, AlertTriangle, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -23,7 +23,7 @@ interface BatchLog {
   dataExecucao: Date;
   regionalId: string;
   lojaId: string;
-  status: 'sucesso' | 'erro' | 'parcial' | 'em_andamento';
+  status: 'sucesso' | 'erro' | 'processando' | 'cancelado';
   pedidosProcessados: number;
   pedidosComErro: number;
   duracaoSegundos: number;
@@ -52,14 +52,14 @@ const mockLojas: Loja[] = [
 const mockBatchLogs: BatchLog[] = [
   { id: '1', dataExecucao: new Date('2026-01-08T06:00:00'), regionalId: '2', lojaId: '1', status: 'sucesso', pedidosProcessados: 245, pedidosComErro: 0, duracaoSegundos: 120 },
   { id: '2', dataExecucao: new Date('2026-01-08T06:00:00'), regionalId: '2', lojaId: '5', status: 'sucesso', pedidosProcessados: 189, pedidosComErro: 0, duracaoSegundos: 95 },
-  { id: '3', dataExecucao: new Date('2026-01-08T06:00:00'), regionalId: '1', lojaId: '3', status: 'parcial', pedidosProcessados: 312, pedidosComErro: 8, duracaoSegundos: 180, mensagem: '8 pedidos com dados inválidos' },
+  { id: '3', dataExecucao: new Date('2026-01-08T06:00:00'), regionalId: '1', lojaId: '3', status: 'processando', pedidosProcessados: 312, pedidosComErro: 8, duracaoSegundos: 180, mensagem: 'Processando pedidos...' },
   { id: '4', dataExecucao: new Date('2026-01-08T06:00:00'), regionalId: '1', lojaId: '7', status: 'erro', pedidosProcessados: 0, pedidosComErro: 0, duracaoSegundos: 15, mensagem: 'Falha na autenticação iFood' },
   { id: '5', dataExecucao: new Date('2026-01-07T06:00:00'), regionalId: '2', lojaId: '1', status: 'sucesso', pedidosProcessados: 278, pedidosComErro: 0, duracaoSegundos: 135 },
-  { id: '6', dataExecucao: new Date('2026-01-07T06:00:00'), regionalId: '5', lojaId: '2', status: 'sucesso', pedidosProcessados: 156, pedidosComErro: 0, duracaoSegundos: 88 },
+  { id: '6', dataExecucao: new Date('2026-01-07T06:00:00'), regionalId: '5', lojaId: '2', status: 'cancelado', pedidosProcessados: 0, pedidosComErro: 0, duracaoSegundos: 5, mensagem: 'Cancelado pelo usuário' },
   { id: '7', dataExecucao: new Date('2026-01-07T06:00:00'), regionalId: '3', lojaId: '4', status: 'sucesso', pedidosProcessados: 203, pedidosComErro: 0, duracaoSegundos: 110 },
   { id: '8', dataExecucao: new Date('2026-01-06T06:00:00'), regionalId: '2', lojaId: '1', status: 'sucesso', pedidosProcessados: 301, pedidosComErro: 0, duracaoSegundos: 145 },
   { id: '9', dataExecucao: new Date('2026-01-06T06:00:00'), regionalId: '1', lojaId: '3', status: 'sucesso', pedidosProcessados: 267, pedidosComErro: 0, duracaoSegundos: 128 },
-  { id: '10', dataExecucao: new Date('2026-01-05T06:00:00'), regionalId: '2', lojaId: '5', status: 'parcial', pedidosProcessados: 198, pedidosComErro: 3, duracaoSegundos: 102, mensagem: '3 pedidos duplicados ignorados' },
+  { id: '10', dataExecucao: new Date('2026-01-05T06:00:00'), regionalId: '2', lojaId: '5', status: 'cancelado', pedidosProcessados: 0, pedidosComErro: 0, duracaoSegundos: 8, mensagem: 'Cancelado por timeout' },
 ];
 
 const AtualizacaoIfood: React.FC = () => {
@@ -67,6 +67,7 @@ const AtualizacaoIfood: React.FC = () => {
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedRegional, setSelectedRegional] = useState<string>('');
   const [selectedLojas, setSelectedLojas] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [lojasDropdownOpen, setLojasDropdownOpen] = useState(false);
 
   const filteredLojas = useMemo(() => {
@@ -114,9 +115,10 @@ const AtualizacaoIfood: React.FC = () => {
       }
       if (selectedRegional && log.regionalId !== selectedRegional) return false;
       if (selectedLojas.length > 0 && !selectedLojas.includes(log.lojaId)) return false;
+      if (selectedStatus && log.status !== selectedStatus) return false;
       return true;
     });
-  }, [dateFrom, dateTo, selectedRegional, selectedLojas]);
+  }, [dateFrom, dateTo, selectedRegional, selectedLojas, selectedStatus]);
 
   const getStatusIcon = (status: BatchLog['status']) => {
     switch (status) {
@@ -124,10 +126,10 @@ const AtualizacaoIfood: React.FC = () => {
         return <CheckCircle className="w-4 h-4 text-emerald-500" />;
       case 'erro':
         return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'parcial':
-        return <AlertTriangle className="w-4 h-4 text-amber-500" />;
-      case 'em_andamento':
+      case 'processando':
         return <Clock className="w-4 h-4 text-blue-500 animate-pulse" />;
+      case 'cancelado':
+        return <AlertTriangle className="w-4 h-4 text-amber-500" />;
     }
   };
 
@@ -137,10 +139,10 @@ const AtualizacaoIfood: React.FC = () => {
         return 'Sucesso';
       case 'erro':
         return 'Erro';
-      case 'parcial':
-        return 'Parcial';
-      case 'em_andamento':
-        return 'Em andamento';
+      case 'processando':
+        return 'Processando';
+      case 'cancelado':
+        return 'Cancelado';
     }
   };
 
@@ -150,10 +152,10 @@ const AtualizacaoIfood: React.FC = () => {
         return 'bg-emerald-500/10 text-emerald-600';
       case 'erro':
         return 'bg-red-500/10 text-red-600';
-      case 'parcial':
-        return 'bg-amber-500/10 text-amber-600';
-      case 'em_andamento':
+      case 'processando':
         return 'bg-blue-500/10 text-blue-600';
+      case 'cancelado':
+        return 'bg-amber-500/10 text-amber-600';
     }
   };
 
@@ -172,9 +174,10 @@ const AtualizacaoIfood: React.FC = () => {
     const total = filteredLogs.length;
     const sucesso = filteredLogs.filter(l => l.status === 'sucesso').length;
     const erro = filteredLogs.filter(l => l.status === 'erro').length;
-    const parcial = filteredLogs.filter(l => l.status === 'parcial').length;
+    const processando = filteredLogs.filter(l => l.status === 'processando').length;
+    const cancelado = filteredLogs.filter(l => l.status === 'cancelado').length;
     const totalPedidos = filteredLogs.reduce((acc, l) => acc + l.pedidosProcessados, 0);
-    return { total, sucesso, erro, parcial, totalPedidos };
+    return { total, sucesso, erro, processando, cancelado, totalPedidos };
   }, [filteredLogs]);
 
   return (
@@ -197,7 +200,7 @@ const AtualizacaoIfood: React.FC = () => {
 
         {/* Filters */}
         <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Date From */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">
@@ -322,6 +325,27 @@ const AtualizacaoIfood: React.FC = () => {
                   </div>
                 </PopoverContent>
               </Popover>
+            </div>
+
+            {/* Status */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">
+                Status
+              </label>
+              <div className="relative">
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Todos os status</option>
+                  <option value="sucesso">Sucesso</option>
+                  <option value="erro">Erro</option>
+                  <option value="processando">Processando</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>

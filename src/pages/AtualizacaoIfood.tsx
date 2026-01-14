@@ -592,7 +592,7 @@ const AtualizacaoIfood: React.FC = () => {
                             )}
                           </div>
                           <div className="w-8 h-8 flex items-center justify-center">
-                            {log.status === 'sucesso' && (
+                            {(log.status === 'sucesso' || log.status === 'processando') && (
                               <AlertDialog>
                                 <TooltipProvider>
                                   <Tooltip>

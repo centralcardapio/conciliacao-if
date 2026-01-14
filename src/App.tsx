@@ -17,6 +17,7 @@ import Lojas from "./pages/Lojas";
 import Usuarios from "./pages/Usuarios";
 import UploadVendas from "./pages/UploadVendas";
 import HistoricoUploads from "./pages/HistoricoUploads";
+import DetalheUpload from "./pages/DetalheUpload";
 import GestaoCredenciaisIfood from "./pages/GestaoCredenciaisIfood";
 import ConfigurarParametros from "./pages/ConfigurarParametros";
 import BasePedidos from "./pages/BasePedidos";
@@ -90,6 +91,11 @@ const App = () => (
             <Route path="/historico-uploads" element={
               <ProtectedRoute>
                 <HistoricoUploads />
+              </ProtectedRoute>
+            } />
+            <Route path="/historico-uploads/:id" element={
+              <ProtectedRoute>
+                <DetalheUpload />
               </ProtectedRoute>
             } />
             <Route path="/historico-ifood" element={

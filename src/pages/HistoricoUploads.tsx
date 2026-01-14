@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { History, Search, Download, CheckCircle, AlertCircle, Clock, XCircle, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, Eye, Store, DollarSign, Calendar, Filter } from 'lucide-react';
 import { format } from 'date-fns';
@@ -42,6 +43,7 @@ const mockUploads: UploadRecord[] = [
 ];
 
 const HistoricoUploads: React.FC = () => {
+  const navigate = useNavigate();
   const [uploads] = useState<UploadRecord[]>(mockUploads);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -395,6 +397,7 @@ const HistoricoUploads: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1">
                           <button
+                            onClick={() => navigate(`/historico-uploads/${upload.id}`)}
                             className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
                             title="Visualizar detalhes"
                           >

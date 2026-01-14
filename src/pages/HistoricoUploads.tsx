@@ -1,6 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { History, Search, Download, CheckCircle, AlertCircle, Clock, XCircle, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, Eye, Store, DollarSign } from 'lucide-react';
+import { History, Search, Download, CheckCircle, AlertCircle, Clock, XCircle, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, Eye, Store, DollarSign, Calendar, Filter } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 interface UploadRecord {
   id: string;
@@ -43,6 +48,8 @@ const HistoricoUploads: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>('dataHora');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -62,6 +69,16 @@ const HistoricoUploads: React.FC = () => {
     
     if (statusFilter !== 'todos') {
       filtered = filtered.filter(u => u.status === statusFilter);
+    }
+
+    if (dateFrom) {
+      filtered = filtered.filter(u => u.dataHora >= dateFrom);
+    }
+
+    if (dateTo) {
+      const endOfDay = new Date(dateTo);
+      endOfDay.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(u => u.dataHora <= endOfDay);
     }
     
     return filtered.sort((a, b) => {
@@ -85,7 +102,7 @@ const HistoricoUploads: React.FC = () => {
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [uploads, searchTerm, sortField, sortDirection, statusFilter]);
+  }, [uploads, searchTerm, sortField, sortDirection, statusFilter, dateFrom, dateTo]);
 
   const totalPages = Math.ceil(sortedAndFilteredUploads.length / ITEMS_PER_PAGE);
   const paginatedUploads = useMemo(() => {
@@ -161,28 +178,104 @@ const HistoricoUploads: React.FC = () => {
           </div>
         </div>
 
-        {/* Search & Filters Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between animate-fade-in">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Buscar por usuário ou arquivo..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
-            />
+        {/* Filters */}
+        <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Date From */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">
+                Data Início
+              </label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className={cn(
+                      "w-full h-11 px-4 bg-background border border-border rounded-lg text-left flex items-center gap-3 hover:border-foreground/30 transition-colors",
+                      !dateFrom && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    {dateFrom ? format(dateFrom, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={dateFrom}
+                    onSelect={(date) => { setDateFrom(date); setCurrentPage(1); }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Date To */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">
+                Data Fim
+              </label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className={cn(
+                      "w-full h-11 px-4 bg-background border border-border rounded-lg text-left flex items-center gap-3 hover:border-foreground/30 transition-colors",
+                      !dateTo && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    {dateTo ? format(dateTo, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={dateTo}
+                    onSelect={(date) => { setDateTo(date); setCurrentPage(1); }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Status */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">
+                Status
+              </label>
+              <div className="relative">
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                  className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="todos">Todos os status</option>
+                  <option value="sucesso">Sucesso</option>
+                  <option value="erro">Erro</option>
+                  <option value="processando">Processando</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Search */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">
+                Buscar
+              </label>
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Usuário ou arquivo..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+                />
+              </div>
+            </div>
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="h-11 px-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
-          >
-            <option value="todos">Todos os status</option>
-            <option value="sucesso">Sucesso</option>
-            <option value="erro">Erro</option>
-            <option value="processando">Processando</option>
-          </select>
         </div>
 
         {/* Table Card */}

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { RefreshCw, Calendar, Building2, Store, CheckCircle, XCircle, Clock, AlertTriangle, Filter, Eye, Download, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { format } from 'date-fns';
@@ -68,6 +69,7 @@ type SortDirection = 'asc' | 'desc';
 const ITEMS_PER_PAGE = 10;
 
 const AtualizacaoIfood: React.FC = () => {
+  const navigate = useNavigate();
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedRegional, setSelectedRegional] = useState<string>('');
@@ -536,6 +538,7 @@ const AtualizacaoIfood: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1">
                           <button
+                            onClick={() => navigate(`/historico-ifood/${log.id}`)}
                             className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
                             title="Visualizar"
                           >

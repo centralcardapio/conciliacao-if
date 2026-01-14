@@ -1,13 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { RefreshCw, Calendar, Building2, Store, CheckCircle, XCircle, Clock, AlertTriangle, Filter, Eye, Download, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { RefreshCw, Calendar, Building2, Store, CheckCircle, XCircle, Clock, AlertTriangle, Filter, Eye, Download, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Ban } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
 interface Regional {
   id: string;
   nome: string;
@@ -550,6 +561,41 @@ const AtualizacaoIfood: React.FC = () => {
                           >
                             <Download className="w-4 h-4" />
                           </button>
+                          {log.status === 'processando' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Cancelar"
+                                >
+                                  <Ban className="w-4 h-4" />
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancelar Processamento</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja cancelar o processamento da loja <strong>{getLojaName(log.lojaId)}</strong>?
+                                    Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Não, manter</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => {
+                                      toast({
+                                        title: "Processamento cancelado",
+                                        description: `O processamento da loja ${getLojaName(log.lojaId)} foi cancelado com sucesso.`,
+                                      });
+                                    }}
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                  >
+                                    Sim, cancelar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
                       </td>
                     </tr>

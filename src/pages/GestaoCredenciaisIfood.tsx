@@ -303,7 +303,7 @@ const GestaoCredenciaisIfood: React.FC = () => {
       closeDeleteModal();
     }
   };
-  return <Layout title="Gestão Credenciais iFood">
+  return <Layout title="Credenciais iFood">
       <div className="space-y-6">
         {/* Header Card */}
         <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">

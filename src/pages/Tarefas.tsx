@@ -600,15 +600,15 @@ const Tarefas: React.FC = () => {
                                       </TooltipTrigger>
                                     </AlertDialogTrigger>
                                     <TooltipContent>
-                                      <p>Concluir tarefa</p>
+                                      <p>Finalizar tarefa</p>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>Concluir Tarefa</AlertDialogTitle>
+                                    <AlertDialogTitle>Finalizar Tarefa</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Tem certeza que deseja concluir a tarefa do pedido <strong>{tarefa.numeroPedidoIfood}</strong>?
+                                      Tem certeza que deseja finalizar a tarefa do pedido <strong>{tarefa.numeroPedidoIfood}</strong>?
                                       Esta ação marcará a tarefa como finalizada.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
@@ -617,13 +617,13 @@ const Tarefas: React.FC = () => {
                                     <AlertDialogAction
                                       onClick={() => {
                                         toast({
-                                          title: "Tarefa concluída",
-                                          description: `A tarefa do pedido ${tarefa.numeroPedidoIfood} foi concluída com sucesso.`,
+                                          title: "Tarefa finalizada",
+                                          description: `A tarefa do pedido ${tarefa.numeroPedidoIfood} foi finalizada com sucesso.`,
                                         });
                                       }}
                                       className="bg-green-600 text-white hover:bg-green-700"
                                     >
-                                      Concluir
+                                      Finalizar
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>

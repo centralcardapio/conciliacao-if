@@ -1,12 +1,30 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/Pagination';
-import { ClipboardList, Calendar, Building2, Store, Search, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2 } from 'lucide-react';
+import { ClipboardList, Calendar, Building2, Store, Search, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { toast } from '@/hooks/use-toast';
 interface Regional {
   id: string;
   nome: string;
@@ -510,11 +528,14 @@ const Tarefas: React.FC = () => {
                       <SortIcon field="status" />
                     </button>
                   </th>
+                  <th className="text-right px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-24">
+                    Ações
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {sortedTarefas.length === 0 ? <tr>
-                    <td colSpan={8} className="px-6 py-16 text-center">
+              {sortedTarefas.length === 0 ? <tr>
+                    <td colSpan={9} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
                           <ClipboardList className="w-6 h-6 text-muted-foreground" />
@@ -561,6 +582,55 @@ const Tarefas: React.FC = () => {
                         <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium", getStatusBadgeClass(tarefa.status))}>
                           {getStatusLabel(tarefa.status)}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-1">
+                          <div className="w-8 h-8 flex items-center justify-center">
+                            {tarefa.status === 'aberto' && (
+                              <AlertDialog>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <AlertDialogTrigger asChild>
+                                      <TooltipTrigger asChild>
+                                        <button
+                                          className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                        >
+                                          <CheckCircle className="w-4 h-4" />
+                                        </button>
+                                      </TooltipTrigger>
+                                    </AlertDialogTrigger>
+                                    <TooltipContent>
+                                      <p>Concluir tarefa</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Concluir Tarefa</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Tem certeza que deseja concluir a tarefa do pedido <strong>{tarefa.numeroPedidoIfood}</strong>?
+                                      Esta ação marcará a tarefa como finalizada.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => {
+                                        toast({
+                                          title: "Tarefa concluída",
+                                          description: `A tarefa do pedido ${tarefa.numeroPedidoIfood} foi concluída com sucesso.`,
+                                        });
+                                      }}
+                                      className="bg-green-600 text-white hover:bg-green-700"
+                                    >
+                                      Concluir
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
+                        </div>
                       </td>
                     </tr>)}
               </tbody>

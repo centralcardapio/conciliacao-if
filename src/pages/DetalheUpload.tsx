@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { ArrowLeft, FileSpreadsheet, User, Calendar, Clock, CheckCircle, XCircle, Package, Store, DollarSign, Download, FileText } from 'lucide-react';
+import { ArrowLeft, FileSpreadsheet, User, Calendar, Clock, CheckCircle, XCircle, Package, Store, DollarSign, Download, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+
+const ITEMS_PER_PAGE = 50;
 
 interface UploadRecord {
   id: string;
@@ -49,7 +51,7 @@ const mockUploads: UploadRecord[] = [
 const mockLojas = ['Loja Centro', 'Loja Norte', 'Loja Sul', 'Loja Oeste', 'Loja Leste', 'Loja Shopping'];
 
 const generateMockLinhas = (count: number, hasErrors: boolean): LinhaUpload[] => {
-  return Array.from({ length: Math.min(count, 50) }, (_, i) => {
+  return Array.from({ length: count }, (_, i) => {
     const isError = hasErrors && Math.random() > 0.7;
     const randomDay = Math.floor(Math.random() * 7) + 1;
     const randomHour = Math.floor(Math.random() * 12) + 8;
@@ -70,9 +72,53 @@ const generateMockLinhas = (count: number, hasErrors: boolean): LinhaUpload[] =>
 const DetalheUpload: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const upload = mockUploads.find(u => u.id === id);
-  const linhas = upload ? generateMockLinhas(upload.totalLinhas, upload.status === 'erro') : [];
+  const allLinhas = useMemo(() => 
+    upload ? generateMockLinhas(upload.totalLinhas, upload.status === 'erro') : [],
+    [upload]
+  );
+  
+  const totalPages = Math.ceil(allLinhas.length / ITEMS_PER_PAGE);
+  const paginatedLinhas = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return allLinhas.slice(start, start + ITEMS_PER_PAGE);
+  }, [allLinhas, currentPage]);
+
+  const getVisiblePages = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    
+    pages.push(1);
+    
+    if (currentPage > 3) {
+      pages.push('...');
+    }
+    
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+    
+    for (let i = start; i <= end; i++) {
+      if (!pages.includes(i)) {
+        pages.push(i);
+      }
+    }
+    
+    if (currentPage < totalPages - 2) {
+      pages.push('...');
+    }
+    
+    if (!pages.includes(totalPages)) {
+      pages.push(totalPages);
+    }
+    
+    return pages;
+  };
 
   const getStatusIcon = (status: UploadRecord['status']) => {
     switch (status) {
@@ -278,7 +324,7 @@ const DetalheUpload: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {linhas.length === 0 ? (
+                {paginatedLinhas.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center gap-3">
@@ -288,7 +334,7 @@ const DetalheUpload: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  linhas.map((linha, index) => (
+                  paginatedLinhas.map((linha, index) => (
                     <tr 
                       key={linha.id} 
                       className="group hover:bg-secondary/40 transition-colors animate-fade-in"
@@ -341,11 +387,52 @@ const DetalheUpload: React.FC = () => {
             </table>
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-border bg-secondary/30">
+          {/* Pagination Footer */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-secondary/30">
             <span className="text-sm text-muted-foreground">
-              Exibindo {linhas.length} de {upload.totalLinhas.toLocaleString('pt-BR')} linhas
+              Mostrando {paginatedLinhas.length} de {allLinhas.length.toLocaleString('pt-BR')} linhas
             </span>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {getVisiblePages().map((page, idx) => (
+                    typeof page === 'number' ? (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentPage(page)}
+                        className={cn(
+                          "inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm font-medium transition-colors",
+                          currentPage === page
+                            ? "bg-foreground text-background"
+                            : "border border-border bg-background text-foreground hover:bg-secondary"
+                        )}
+                      >
+                        {page}
+                      </button>
+                    ) : (
+                      <span key={idx} className="px-2 text-muted-foreground">...</span>
+                    )
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

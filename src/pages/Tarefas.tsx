@@ -559,19 +559,28 @@ const Tarefas: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-mono text-sm text-foreground">{tarefa.numeroPedidoIfood}</span>
+                        <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm font-medium text-foreground">
+                          {tarefa.numeroPedidoIfood}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-mono text-sm text-foreground">{tarefa.numeroPedidoVarejo}</span>
+                        <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">
+                          {tarefa.numeroPedidoVarejo}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-foreground">{getRegionalNome(tarefa.regionalId)}</span>
+                        <span className="text-sm text-muted-foreground">{getRegionalNome(tarefa.regionalId)}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-foreground">{getLojaNome(tarefa.lojaId)}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-foreground/5 rounded-lg flex items-center justify-center">
+                            <Store className="w-4 h-4 text-foreground/70" />
+                          </div>
+                          <span className="font-medium text-foreground">{getLojaNome(tarefa.lojaId)}</span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <span className="font-medium text-foreground">{formatCurrency(tarefa.valor)}</span>
+                        <span className="text-sm font-medium text-foreground">{formatCurrency(tarefa.valor)}</span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium", getTipoBadgeClass(tarefa.tipo))}>

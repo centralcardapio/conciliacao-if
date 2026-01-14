@@ -426,7 +426,7 @@ const BasePedidos: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border bg-muted/30">
+                <tr className="bg-foreground/5 border-b border-border">
                   <th className="text-left px-6 py-4">
                     <button onClick={() => handleSort('dataIfood')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
                       Data iFood
@@ -476,43 +476,60 @@ const BasePedidos: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {paginatedPedidos.length > 0 ? (
-                  paginatedPedidos.map((pedido) => (
-                    <tr key={pedido.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {formatDate(pedido.dataIfood)}
+                  paginatedPedidos.map((pedido, index) => (
+                    <tr 
+                      key={pedido.id} 
+                      className="group hover:bg-secondary/40 transition-colors"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-muted-foreground">{formatDate(pedido.dataIfood)}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-foreground">
-                        {pedido.nfIfood}
+                      <td className="px-6 py-4">
+                        <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm font-medium text-foreground">
+                          {pedido.nfIfood}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground text-right font-medium">
-                        {formatCurrency(pedido.valorIfood)}
+                      <td className="px-6 py-4 text-right">
+                        <span className="text-sm font-medium text-foreground">{formatCurrency(pedido.valorIfood)}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {formatDate(pedido.dataErp)}
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-muted-foreground">{formatDate(pedido.dataErp)}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
-                        {pedido.nfErp}
+                      <td className="px-6 py-4">
+                        <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">
+                          {pedido.nfErp}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground text-right font-medium">
-                        {formatCurrency(pedido.valorErp)}
+                      <td className="px-6 py-4 text-right">
+                        <span className="text-sm font-medium text-foreground">{formatCurrency(pedido.valorErp)}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {pedido.regional}
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-muted-foreground">{pedido.regional}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
-                        {pedido.loja}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-foreground/5 rounded-lg flex items-center justify-center">
+                            <Store className="w-4 h-4 text-foreground/70" />
+                          </div>
+                          <span className="font-medium text-foreground">{pedido.loja}</span>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <FileSpreadsheet className="w-8 h-8 text-muted-foreground/50" />
-                        <p className="text-muted-foreground">Nenhum pedido encontrado</p>
-                        <p className="text-sm text-muted-foreground/70">
-                          Ajuste os filtros para visualizar os pedidos
-                        </p>
+                    <td colSpan={8} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
+                          <FileSpreadsheet className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-foreground font-medium">Nenhum pedido encontrado</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Ajuste os filtros para visualizar os pedidos
+                          </p>
+                        </div>
                       </div>
                     </td>
                   </tr>

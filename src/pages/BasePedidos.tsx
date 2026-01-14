@@ -450,15 +450,21 @@ const BasePedidos: React.FC = () => {
               <thead>
                 <tr className="border-b border-border bg-muted/30">
                   <th className="text-left px-6 py-4">
+                    <button onClick={() => handleSort('dataIfood')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      Data iFood
+                      <SortIcon field="dataIfood" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
                     <button onClick={() => handleSort('nfIfood')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
                       NF iFood
                       <SortIcon field="nfIfood" />
                     </button>
                   </th>
-                  <th className="text-left px-6 py-4">
-                    <button onClick={() => handleSort('nfErp')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
-                      NF ERP
-                      <SortIcon field="nfErp" />
+                  <th className="text-right px-6 py-4">
+                    <button onClick={() => handleSort('valorIfood')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors ml-auto">
+                      Valor iFood
+                      <SortIcon field="valorIfood" />
                     </button>
                   </th>
                   <th className="text-left px-6 py-4">
@@ -468,19 +474,10 @@ const BasePedidos: React.FC = () => {
                     </button>
                   </th>
                   <th className="text-left px-6 py-4">
-                    <button onClick={() => handleSort('dataIfood')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
-                      Data iFood
-                      <SortIcon field="dataIfood" />
+                    <button onClick={() => handleSort('nfErp')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      NF ERP
+                      <SortIcon field="nfErp" />
                     </button>
-                  </th>
-                  <th className="text-left px-6 py-4">
-                    <button onClick={() => handleSort('loja')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
-                      Loja
-                      <SortIcon field="loja" />
-                    </button>
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
-                    Regional
                   </th>
                   <th className="text-right px-6 py-4">
                     <button onClick={() => handleSort('valorErp')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors ml-auto">
@@ -488,10 +485,13 @@ const BasePedidos: React.FC = () => {
                       <SortIcon field="valorErp" />
                     </button>
                   </th>
-                  <th className="text-right px-6 py-4">
-                    <button onClick={() => handleSort('valorIfood')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors ml-auto">
-                      Valor iFood
-                      <SortIcon field="valorIfood" />
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
+                    Regional
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button onClick={() => handleSort('loja')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      Loja
+                      <SortIcon field="loja" />
                     </button>
                   </th>
                 </tr>
@@ -500,29 +500,29 @@ const BasePedidos: React.FC = () => {
                 {paginatedPedidos.length > 0 ? (
                   paginatedPedidos.map((pedido) => (
                     <tr key={pedido.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {formatDate(pedido.dataIfood)}
+                      </td>
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         {pedido.nfIfood}
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
-                        {pedido.nfErp}
+                      <td className="px-6 py-4 text-sm text-foreground text-right font-medium">
+                        {formatCurrency(pedido.valorIfood)}
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
                         {formatDate(pedido.dataErp)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {formatDate(pedido.dataIfood)}
-                      </td>
                       <td className="px-6 py-4 text-sm text-foreground">
-                        {pedido.loja}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {pedido.regional}
+                        {pedido.nfErp}
                       </td>
                       <td className="px-6 py-4 text-sm text-foreground text-right font-medium">
                         {formatCurrency(pedido.valorErp)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground text-right font-medium">
-                        {formatCurrency(pedido.valorIfood)}
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {pedido.regional}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground">
+                        {pedido.loja}
                       </td>
                     </tr>
                   ))

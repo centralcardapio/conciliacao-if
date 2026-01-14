@@ -29,7 +29,7 @@ interface UploadRecord {
 type SortField = 'dataHora' | 'usuario' | 'status' | 'totalLinhas' | 'valorTotal';
 type SortDirection = 'asc' | 'desc';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 50;
 
 const mockUploads: UploadRecord[] = [
   { id: '1', dataHora: new Date('2026-01-08T14:30:00'), usuario: 'João Silva', status: 'sucesso', totalLinhas: 1250, linhasValidas: 1250, erros: 0, avisos: 3, nomeArquivo: 'vendas_janeiro_2026.xlsx', totalPedidos: 1250, totalLojas: 15, valorTotal: 187500.00, periodoInicio: '01/01/2026', periodoFim: '07/01/2026' },

@@ -83,7 +83,7 @@ const mockBatchLogs: BatchLog[] = [
 type SortField = 'dataExecucao' | 'regional' | 'loja' | 'status' | 'pedidosProcessados';
 type SortDirection = 'asc' | 'desc';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 50;
 
 const AtualizacaoIfood: React.FC = () => {
   const navigate = useNavigate();

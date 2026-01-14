@@ -41,7 +41,7 @@ const usuarioSchema = z.object({
   lojaId: z.string().min(1, 'Loja é obrigatória'),
 });
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 50;
 
 // Mock data
 const mockRegionais: Regional[] = [

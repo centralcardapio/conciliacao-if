@@ -22,7 +22,7 @@ interface Credencial {
 }
 type SortField = 'id' | 'loja' | 'regional';
 type SortDirection = 'asc' | 'desc';
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 50;
 const credencialSchema = z.object({
   regionalId: z.string().min(1, 'Regional é obrigatória'),
   lojaId: z.string().min(1, 'Loja é obrigatória'),

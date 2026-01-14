@@ -372,28 +372,32 @@ const HistoricoUploads: React.FC = () => {
                         {getStatusBadge(upload.status)}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="inline-flex items-center gap-1.5 text-foreground">
-                              <Store className="w-3.5 h-3.5 text-muted-foreground" />
-                              <span className="font-medium">{upload.totalLojas ?? 0}</span>
-                              <span className="text-muted-foreground">{(upload.totalLojas ?? 0) === 1 ? 'loja' : 'lojas'}</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 text-foreground">
-                              <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
-                              <span className="font-medium">{(upload.valorTotal ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-                            </span>
+                        {upload.status === 'sucesso' ? (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="inline-flex items-center gap-1.5 text-foreground">
+                                <Store className="w-3.5 h-3.5 text-muted-foreground" />
+                                <span className="font-medium">{upload.totalLojas ?? 0}</span>
+                                <span className="text-muted-foreground">{(upload.totalLojas ?? 0) === 1 ? 'loja' : 'lojas'}</span>
+                              </span>
+                              <span className="inline-flex items-center gap-1.5 text-foreground">
+                                <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
+                                <span className="font-medium">{(upload.valorTotal ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs">
+                              <span className="text-muted-foreground">
+                                {(upload.totalPedidos ?? 0).toLocaleString()} pedidos
+                              </span>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-muted-foreground">
+                                {upload.periodoInicio ?? '-'} a {upload.periodoFim ?? '-'}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3 text-xs">
-                            <span className="text-muted-foreground">
-                              {(upload.totalPedidos ?? 0).toLocaleString()} pedidos
-                            </span>
-                            <span className="text-muted-foreground">•</span>
-                            <span className="text-muted-foreground">
-                              {upload.periodoInicio ?? '-'} a {upload.periodoFim ?? '-'}
-                            </span>
-                          </div>
-                        </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1">

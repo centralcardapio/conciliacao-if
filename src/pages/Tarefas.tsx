@@ -176,7 +176,7 @@ const statusOptions = [{
   value: 'finalizado',
   label: 'Finalizado'
 }];
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 50;
 const Tarefas: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);

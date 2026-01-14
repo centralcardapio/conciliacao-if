@@ -15,7 +15,7 @@ const regionalSchema = z.object({
   nome: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
 });
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 50;
 
 const Regionais: React.FC = () => {
   const [regionais, setRegionais] = useState<Regional[]>([

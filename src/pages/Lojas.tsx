@@ -26,7 +26,7 @@ const lojaSchema = z.object({
   regionalId: z.string().min(1, 'Regional é obrigatória'),
 });
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 50;
 
 // Mock regionais para o select
 const mockRegionais: Regional[] = [

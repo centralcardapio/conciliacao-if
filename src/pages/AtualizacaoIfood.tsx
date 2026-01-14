@@ -381,15 +381,12 @@ const AtualizacaoIfood: React.FC = () => {
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Loja</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
                   <th className="text-right p-4 text-sm font-medium text-muted-foreground">Processados</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Erros</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Duração</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Mensagem</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredLogs.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                    <td colSpan={5} className="p-8 text-center text-muted-foreground">
                       Nenhum registro encontrado para os filtros selecionados.
                     </td>
                   </tr>
@@ -416,17 +413,6 @@ const AtualizacaoIfood: React.FC = () => {
                       </td>
                       <td className="p-4 text-sm text-foreground text-right font-medium">
                         {log.pedidosProcessados.toLocaleString('pt-BR')}
-                      </td>
-                      <td className="p-4 text-sm text-right">
-                        <span className={log.pedidosComErro > 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'}>
-                          {log.pedidosComErro}
-                        </span>
-                      </td>
-                      <td className="p-4 text-sm text-muted-foreground text-right">
-                        {formatDuration(log.duracaoSegundos)}
-                      </td>
-                      <td className="p-4 text-sm text-muted-foreground max-w-xs truncate">
-                        {log.mensagem || '-'}
                       </td>
                     </tr>
                   ))

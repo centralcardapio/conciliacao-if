@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { ArrowLeft, FileSpreadsheet, User, Calendar, Clock, CheckCircle, XCircle, Package, Store, DollarSign, Download, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
+import Pagination from '@/components/Pagination';
+import { ArrowLeft, FileSpreadsheet, User, Calendar, Clock, CheckCircle, XCircle, Package, Store, DollarSign, Download, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -86,39 +87,6 @@ const DetalheUpload: React.FC = () => {
     return allLinhas.slice(start, start + ITEMS_PER_PAGE);
   }, [allLinhas, currentPage]);
 
-  const getVisiblePages = () => {
-    const pages: (number | string)[] = [];
-    const maxVisible = 5;
-    
-    if (totalPages <= maxVisible) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-    
-    pages.push(1);
-    
-    if (currentPage > 3) {
-      pages.push('...');
-    }
-    
-    const start = Math.max(2, currentPage - 1);
-    const end = Math.min(totalPages - 1, currentPage + 1);
-    
-    for (let i = start; i <= end; i++) {
-      if (!pages.includes(i)) {
-        pages.push(i);
-      }
-    }
-    
-    if (currentPage < totalPages - 2) {
-      pages.push('...');
-    }
-    
-    if (!pages.includes(totalPages)) {
-      pages.push(totalPages);
-    }
-    
-    return pages;
-  };
 
   const getStatusIcon = (status: UploadRecord['status']) => {
     switch (status) {
@@ -387,53 +355,14 @@ const DetalheUpload: React.FC = () => {
             </table>
           </div>
 
-          {/* Pagination Footer */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-secondary/30">
-            <span className="text-sm text-muted-foreground">
-              Mostrando {paginatedLinhas.length} de {allLinhas.length.toLocaleString('pt-BR')} linhas
-            </span>
-            
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                
-                <div className="flex items-center gap-1">
-                  {getVisiblePages().map((page, idx) => (
-                    typeof page === 'number' ? (
-                      <button
-                        key={idx}
-                        onClick={() => setCurrentPage(page)}
-                        className={cn(
-                          "inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm font-medium transition-colors",
-                          currentPage === page
-                            ? "bg-foreground text-background"
-                            : "border border-border bg-background text-foreground hover:bg-secondary"
-                        )}
-                      >
-                        {page}
-                      </button>
-                    ) : (
-                      <span key={idx} className="px-2 text-muted-foreground">...</span>
-                    )
-                  ))}
-                </div>
-                
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={allLinhas.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            itemLabel="linha"
+          />
         </div>
       </div>
     </Layout>

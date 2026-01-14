@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { Search, Key, Store, Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import Pagination from '@/components/Pagination';
+import { Search, Key, Store, Pencil, Trash2, Plus, X, ArrowUpDown, ArrowUp, ArrowDown, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 interface Regional {
@@ -436,30 +437,15 @@ const GestaoCredenciaisIfood: React.FC = () => {
             </table>
           </div>
 
-          {/* Pagination Footer */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-secondary/30">
-            <span className="text-sm text-muted-foreground">
-              Mostrando {paginatedCredenciais.length} de {sortedAndFilteredCredenciais.length} {sortedAndFilteredCredenciais.length === 1 ? 'credencial' : 'credenciais'}
-            </span>
-            
-            {totalPages > 1 && <div className="flex items-center gap-2">
-                <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                
-                <div className="flex items-center gap-1">
-                  {Array.from({
-                length: totalPages
-              }, (_, i) => i + 1).map(page => <button key={page} onClick={() => setCurrentPage(page)} className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm font-medium transition-colors ${currentPage === page ? 'bg-foreground text-background' : 'border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary'}`}>
-                      {page}
-                    </button>)}
-                </div>
-                
-                <button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>}
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={sortedAndFilteredCredenciais.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            itemLabel="credencial"
+            itemLabelPlural="credenciais"
+          />
         </div>
       </div>
 

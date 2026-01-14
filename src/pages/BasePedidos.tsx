@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { FileSpreadsheet, Download, Calendar, Building2, Store, Loader2 } from 'lucide-react';
+import { FileSpreadsheet, Download, Calendar, Building2, Store, Loader2, ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import Pagination from '@/components/Pagination';
 
 interface Regional {
   id: string;
@@ -18,6 +19,21 @@ interface Loja {
   nome: string;
   regionalId: string;
 }
+
+interface Pedido {
+  id: string;
+  nfIfood: string;
+  nfErp: string;
+  data: string;
+  loja: string;
+  regional: string;
+  valor: number;
+}
+
+type SortField = 'nfIfood' | 'nfErp' | 'data' | 'loja' | 'valor';
+type SortDirection = 'asc' | 'desc';
+
+const ITEMS_PER_PAGE = 50;
 
 // Mock data
 const mockRegionais: Regional[] = [
@@ -38,13 +54,18 @@ const mockLojas: Loja[] = [
   { id: '7', nome: 'Loja Zona Sul', regionalId: '1' },
 ];
 
-// Mock pedidos data
-const mockPedidos = [
-  { nfIfood: 'IF-001234', nfErp: 'NF-2024-0001' },
-  { nfIfood: 'IF-001235', nfErp: 'NF-2024-0002' },
-  { nfIfood: 'IF-001236', nfErp: 'NF-2024-0003' },
-  { nfIfood: 'IF-001237', nfErp: 'NF-2024-0004' },
-  { nfIfood: 'IF-001238', nfErp: 'NF-2024-0005' },
+// Mock pedidos data expandido
+const mockPedidos: Pedido[] = [
+  { id: '1', nfIfood: 'IF-001234', nfErp: 'NF-2024-0001', data: '2024-01-15', loja: 'Loja Centro', regional: 'Sudeste', valor: 125.50 },
+  { id: '2', nfIfood: 'IF-001235', nfErp: 'NF-2024-0002', data: '2024-01-15', loja: 'Loja Norte', regional: 'Norte', valor: 89.90 },
+  { id: '3', nfIfood: 'IF-001236', nfErp: 'NF-2024-0003', data: '2024-01-14', loja: 'Loja Sul', regional: 'Sul', valor: 234.00 },
+  { id: '4', nfIfood: 'IF-001237', nfErp: 'NF-2024-0004', data: '2024-01-14', loja: 'Loja Oeste', regional: 'Centro-Oeste', valor: 156.75 },
+  { id: '5', nfIfood: 'IF-001238', nfErp: 'NF-2024-0005', data: '2024-01-13', loja: 'Loja Leste', regional: 'Sudeste', valor: 312.40 },
+  { id: '6', nfIfood: 'IF-001239', nfErp: 'NF-2024-0006', data: '2024-01-13', loja: 'Loja Zona Norte', regional: 'Norte', valor: 78.25 },
+  { id: '7', nfIfood: 'IF-001240', nfErp: 'NF-2024-0007', data: '2024-01-12', loja: 'Loja Zona Sul', regional: 'Sul', valor: 445.00 },
+  { id: '8', nfIfood: 'IF-001241', nfErp: 'NF-2024-0008', data: '2024-01-12', loja: 'Loja Centro', regional: 'Sudeste', valor: 67.80 },
+  { id: '9', nfIfood: 'IF-001242', nfErp: 'NF-2024-0009', data: '2024-01-11', loja: 'Loja Norte', regional: 'Norte', valor: 198.30 },
+  { id: '10', nfIfood: 'IF-001243', nfErp: 'NF-2024-0010', data: '2024-01-11', loja: 'Loja Sul', regional: 'Sul', valor: 523.60 },
 ];
 
 const BasePedidos: React.FC = () => {
@@ -54,6 +75,10 @@ const BasePedidos: React.FC = () => {
   const [selectedLojas, setSelectedLojas] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lojasDropdownOpen, setLojasDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>('data');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const regionais = mockRegionais;
 
@@ -93,6 +118,100 @@ const BasePedidos: React.FC = () => {
   };
 
   const canGenerate = dateFrom && dateTo && selectedLojas.length > 0;
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const sortedAndFilteredPedidos = useMemo(() => {
+    let filtered = [...mockPedidos];
+
+    // Filter by search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(pedido =>
+        pedido.nfIfood.toLowerCase().includes(term) ||
+        pedido.nfErp.toLowerCase().includes(term) ||
+        pedido.loja.toLowerCase().includes(term) ||
+        pedido.regional.toLowerCase().includes(term)
+      );
+    }
+
+    // Filter by regional
+    if (selectedRegional) {
+      const regionalNome = mockRegionais.find(r => r.id === selectedRegional)?.nome;
+      if (regionalNome) {
+        filtered = filtered.filter(pedido => pedido.regional === regionalNome);
+      }
+    }
+
+    // Filter by lojas
+    if (selectedLojas.length > 0) {
+      const lojasNomes = selectedLojas.map(id => mockLojas.find(l => l.id === id)?.nome);
+      filtered = filtered.filter(pedido => lojasNomes.includes(pedido.loja));
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case 'nfIfood':
+          comparison = a.nfIfood.localeCompare(b.nfIfood);
+          break;
+        case 'nfErp':
+          comparison = a.nfErp.localeCompare(b.nfErp);
+          break;
+        case 'data':
+          comparison = a.data.localeCompare(b.data);
+          break;
+        case 'loja':
+          comparison = a.loja.localeCompare(b.loja);
+          break;
+        case 'valor':
+          comparison = a.valor - b.valor;
+          break;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [searchTerm, selectedRegional, selectedLojas, sortField, sortDirection]);
+
+  const totalPages = Math.ceil(sortedAndFilteredPedidos.length / ITEMS_PER_PAGE);
+
+  const paginatedPedidos = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return sortedAndFilteredPedidos.slice(start, start + ITEMS_PER_PAGE);
+  }, [sortedAndFilteredPedidos, currentPage]);
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-3.5 h-3.5 opacity-50" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="w-3.5 h-3.5" /> 
+      : <ArrowDown className="w-3.5 h-3.5" />;
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr + 'T00:00:00');
+    return format(date, 'dd/MM/yyyy', { locale: ptBR });
+  };
 
   const handleGenerateDownload = async () => {
     if (!canGenerate) return;
@@ -280,25 +399,26 @@ const BasePedidos: React.FC = () => {
           </div>
         </div>
 
-        {/* Actions Card */}
-        <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h3 className="font-medium text-foreground">Gerar Planilha</h3>
-              <p className="text-sm text-muted-foreground">
-                {selectedLojas.length > 0 
-                  ? selectedLojas.length === 1 
-                    ? `1 loja selecionada`
-                    : `${selectedLojas.length} lojas selecionadas`
-                  : 'Selecione pelo menos uma loja para continuar'
-                }
-              </p>
+        {/* Search and Actions Bar */}
+        <div className="bg-card border border-border rounded-xl p-4 animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por NF iFood, NF ERP, loja ou regional..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+              />
             </div>
-            
+
+            {/* Export Button */}
             <button
               onClick={handleGenerateDownload}
               disabled={!canGenerate || isGenerating}
-              className="h-11 px-6 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2"
+              className="h-11 px-6 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               {isGenerating ? (
                 <>
@@ -308,11 +428,109 @@ const BasePedidos: React.FC = () => {
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  Gerar e Baixar
+                  Exportar Planilha
                 </>
               )}
             </button>
           </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border bg-muted/30">
+                  <th className="text-left px-6 py-4">
+                    <button onClick={() => handleSort('nfIfood')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      NF iFood
+                      <SortIcon field="nfIfood" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button onClick={() => handleSort('nfErp')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      NF ERP
+                      <SortIcon field="nfErp" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button onClick={() => handleSort('data')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      Data
+                      <SortIcon field="data" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button onClick={() => handleSort('loja')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors">
+                      Loja
+                      <SortIcon field="loja" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider">
+                    Regional
+                  </th>
+                  <th className="text-right px-6 py-4">
+                    <button onClick={() => handleSort('valor')} className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors ml-auto">
+                      Valor
+                      <SortIcon field="valor" />
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {paginatedPedidos.length > 0 ? (
+                  paginatedPedidos.map((pedido) => (
+                    <tr key={pedido.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 text-sm font-medium text-foreground">
+                        {pedido.nfIfood}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground">
+                        {pedido.nfErp}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {formatDate(pedido.data)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground">
+                        {pedido.loja}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {pedido.regional}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground text-right font-medium">
+                        {formatCurrency(pedido.valor)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <FileSpreadsheet className="w-8 h-8 text-muted-foreground/50" />
+                        <p className="text-muted-foreground">Nenhum pedido encontrado</p>
+                        <p className="text-sm text-muted-foreground/70">
+                          Ajuste os filtros para visualizar os pedidos
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {sortedAndFilteredPedidos.length > 0 && (
+            <div className="border-t border-border px-6 py-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={sortedAndFilteredPedidos.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                itemLabel="pedido"
+                itemLabelPlural="pedidos"
+              />
+            </div>
+          )}
         </div>
       </div>
     </Layout>

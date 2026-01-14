@@ -109,8 +109,8 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       ],
     },
     {
-      id: 'tarefas',
-      label: 'Tarefas',
+      id: 'divergencias',
+      label: 'Divergências',
       items: [
         { id: 'tarefas', label: 'Tarefas', icon: 'ClipboardList', path: '/tarefas' },
       ],

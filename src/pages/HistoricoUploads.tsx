@@ -1,13 +1,31 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { History, Search, Download, CheckCircle, AlertCircle, Clock, XCircle, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, Eye, Store, DollarSign, Calendar, Filter } from 'lucide-react';
+import { History, Search, Download, CheckCircle, AlertCircle, Clock, XCircle, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, Eye, Store, DollarSign, Calendar, Filter, Ban } from 'lucide-react';
 import Pagination from '@/components/Pagination';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { toast } from '@/hooks/use-toast';
 
 interface UploadRecord {
   id: string;
@@ -401,34 +419,88 @@ const HistoricoUploads: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1">
-                          {upload.status === 'sucesso' && (
-                            <>
-                              <button
-                                onClick={() => navigate(`/historico-uploads/${upload.id}`)}
-                                className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                                title="Visualizar detalhes"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button
-                                className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                                title="Baixar planilha"
-                              >
-                                <Download className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
-                          {(upload.status === 'sucesso' || upload.status === 'processando') && (
-                            <button
-                              className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                              title="Cancelar"
-                            >
-                              <XCircle className="w-4 h-4" />
-                            </button>
-                          )}
-                          {upload.status === 'erro' && (
-                            <span className="text-sm text-muted-foreground">—</span>
-                          )}
+                          <div className="w-8 h-8 flex items-center justify-center">
+                            {upload.status === 'sucesso' && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      onClick={() => navigate(`/historico-uploads/${upload.id}`)}
+                                      className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Visualizar detalhes</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                          <div className="w-8 h-8 flex items-center justify-center">
+                            {upload.status === 'sucesso' && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                    >
+                                      <Download className="w-4 h-4" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Baixar planilha</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                          <div className="w-8 h-8 flex items-center justify-center">
+                            {(upload.status === 'sucesso' || upload.status === 'processando') && (
+                              <AlertDialog>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <AlertDialogTrigger asChild>
+                                      <TooltipTrigger asChild>
+                                        <button
+                                          className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                          <Ban className="w-4 h-4" />
+                                        </button>
+                                      </TooltipTrigger>
+                                    </AlertDialogTrigger>
+                                    <TooltipContent>
+                                      <p>Cancelar upload</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Cancelar Upload</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Tem certeza que deseja cancelar o upload <strong>{upload.nomeArquivo}</strong>?
+                                      Esta ação não pode ser desfeita.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Não, manter</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => {
+                                        toast({
+                                          title: "Upload cancelado",
+                                          description: `O upload ${upload.nomeArquivo} foi cancelado com sucesso.`,
+                                        });
+                                      }}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Sim, cancelar
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>

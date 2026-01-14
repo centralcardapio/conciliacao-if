@@ -93,13 +93,6 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
       ],
     },
     {
-      id: 'configuracoes',
-      label: 'Configurações',
-      items: [
-        { id: 'configurar-parametros', label: 'Parâmetros', icon: 'Settings', path: '/configurar-parametros' },
-      ],
-    },
-    {
       id: 'ifood',
       label: 'iFood',
       items: [

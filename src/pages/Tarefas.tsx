@@ -320,7 +320,12 @@ const Tarefas: React.FC = () => {
     return tipo === 'cancelar' ? 'Cancelar Pedido' : 'Contestar Pedido';
   };
   const getTipoBadgeClass = (tipo: 'cancelar' | 'contestar') => {
-    return tipo === 'cancelar' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+    return tipo === 'cancelar' 
+      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
+      : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+  };
+  const getTipoIndicatorColor = (tipo: 'cancelar' | 'contestar') => {
+    return tipo === 'cancelar' ? 'bg-red-500' : 'bg-amber-500';
   };
   const getStatusLabel = (status: 'aberto' | 'finalizado') => {
     return status === 'aberto' ? 'Aberto' : 'Finalizado';
@@ -583,9 +588,12 @@ const Tarefas: React.FC = () => {
                         <span className="text-sm font-medium text-foreground">{formatCurrency(tarefa.valor)}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium", getTipoBadgeClass(tarefa.tipo))}>
-                          {getTipoLabel(tarefa.tipo)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", getTipoIndicatorColor(tarefa.tipo))} />
+                          <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium", getTipoBadgeClass(tarefa.tipo))}>
+                            {getTipoLabel(tarefa.tipo)}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium", getStatusBadgeClass(tarefa.status))}>

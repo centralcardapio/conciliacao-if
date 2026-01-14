@@ -188,7 +188,7 @@ const DetalheAtualizacaoIfood: React.FC = () => {
         </div>
 
         {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 animate-fade-in">
           <div className="bg-card border border-border rounded-xl p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-foreground/5 rounded-lg flex items-center justify-center">
@@ -221,6 +221,16 @@ const DetalheAtualizacaoIfood: React.FC = () => {
 
           <div className="bg-card border border-border rounded-xl p-5">
             <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+                <Package className="w-5 h-5 text-emerald-600" />
+              </div>
+              <span className="text-sm text-muted-foreground">Pedidos Processados</span>
+            </div>
+            <p className="text-lg font-semibold text-foreground">{log.pedidosProcessados.toLocaleString('pt-BR')}</p>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-5">
+            <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-foreground/5 rounded-lg flex items-center justify-center">
                 {getStatusIcon(log.status)}
               </div>
@@ -233,50 +243,6 @@ const DetalheAtualizacaoIfood: React.FC = () => {
               {getStatusIcon(log.status)}
               {getStatusLabel(log.status)}
             </span>
-          </div>
-        </div>
-
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in">
-          <div className="bg-card border border-border rounded-xl p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pedidos Processados</p>
-                <p className="text-3xl font-bold text-foreground mt-1">{log.pedidosProcessados.toLocaleString('pt-BR')}</p>
-              </div>
-              <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center">
-                <Package className="w-6 h-6 text-emerald-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-card border border-border rounded-xl p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pedidos com Erro</p>
-                <p className="text-3xl font-bold text-foreground mt-1">{log.pedidosComErro.toLocaleString('pt-BR')}</p>
-              </div>
-              <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
-                <XCircle className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-card border border-border rounded-xl p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Taxa de Sucesso</p>
-                <p className="text-3xl font-bold text-foreground mt-1">
-                  {log.pedidosProcessados > 0 
-                    ? `${Math.round((log.pedidosProcessados - log.pedidosComErro) / log.pedidosProcessados * 100)}%`
-                    : '-'
-                  }
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
           </div>
         </div>
 

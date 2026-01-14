@@ -401,7 +401,7 @@ const HistoricoUploads: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1">
-                          {upload.status === 'sucesso' ? (
+                          {upload.status === 'sucesso' && (
                             <>
                               <button
                                 onClick={() => navigate(`/historico-uploads/${upload.id}`)}
@@ -417,7 +417,16 @@ const HistoricoUploads: React.FC = () => {
                                 <Download className="w-4 h-4" />
                               </button>
                             </>
-                          ) : (
+                          )}
+                          {(upload.status === 'sucesso' || upload.status === 'processando') && (
+                            <button
+                              className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                              title="Cancelar"
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </button>
+                          )}
+                          {upload.status === 'erro' && (
                             <span className="text-sm text-muted-foreground">—</span>
                           )}
                         </div>

@@ -18,6 +18,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
 interface Regional {
   id: string;
@@ -548,30 +554,62 @@ const AtualizacaoIfood: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => navigate(`/historico-ifood/${log.id}`)}
-                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                            title="Visualizar"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                            title="Baixar"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
                           <div className="w-8 h-8 flex items-center justify-center">
-                            {log.status === 'processando' ? (
+                            {log.status === 'sucesso' && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      onClick={() => navigate(`/historico-ifood/${log.id}`)}
+                                      className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Visualizar detalhes</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                          <div className="w-8 h-8 flex items-center justify-center">
+                            {log.status === 'sucesso' && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                    >
+                                      <Download className="w-4 h-4" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Baixar relatório</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                          <div className="w-8 h-8 flex items-center justify-center">
+                            {log.status === 'sucesso' && (
                               <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <button
-                                    className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Cancelar"
-                                  >
-                                    <Ban className="w-4 h-4" />
-                                  </button>
-                                </AlertDialogTrigger>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <AlertDialogTrigger asChild>
+                                      <TooltipTrigger asChild>
+                                        <button
+                                          className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                          <Ban className="w-4 h-4" />
+                                        </button>
+                                      </TooltipTrigger>
+                                    </AlertDialogTrigger>
+                                    <TooltipContent>
+                                      <p>Cancelar processamento</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Cancelar Processamento</AlertDialogTitle>
@@ -596,7 +634,7 @@ const AtualizacaoIfood: React.FC = () => {
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
-                            ) : null}
+                            )}
                           </div>
                         </div>
                       </td>

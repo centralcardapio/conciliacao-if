@@ -407,39 +407,17 @@ const BasePedidos: React.FC = () => {
           </div>
         </div>
 
-        {/* Search and Actions Bar */}
+        {/* Search Bar */}
         <div className="bg-card border border-border rounded-xl p-4 animate-fade-in">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Buscar por NF iFood, NF ERP, loja ou regional..."
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
-              />
-            </div>
-
-            {/* Export Button */}
-            <button
-              onClick={handleGenerateDownload}
-              disabled={!canGenerate || isGenerating}
-              className="h-11 px-6 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Gerando...
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  Exportar Planilha
-                </>
-              )}
-            </button>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Buscar por NF iFood, NF ERP, loja ou regional..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+            />
           </div>
         </div>
 
@@ -557,6 +535,39 @@ const BasePedidos: React.FC = () => {
               />
             </div>
           )}
+        </div>
+
+        {/* Export Section */}
+        <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="font-medium text-foreground">Exportar Base de Pedidos</h3>
+              <p className="text-sm text-muted-foreground">
+                {canGenerate 
+                  ? `Exporte ${sortedAndFilteredPedidos.length} pedido${sortedAndFilteredPedidos.length !== 1 ? 's' : ''} para uma planilha Excel.`
+                  : 'Selecione o período e pelo menos uma loja para exportar.'
+                }
+              </p>
+            </div>
+            
+            <button
+              onClick={handleGenerateDownload}
+              disabled={!canGenerate || isGenerating}
+              className="h-11 px-6 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Gerando...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  Exportar Planilha
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </Layout>

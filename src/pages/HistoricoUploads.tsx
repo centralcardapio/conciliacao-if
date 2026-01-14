@@ -401,19 +401,25 @@ const HistoricoUploads: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => navigate(`/historico-uploads/${upload.id}`)}
-                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                            title="Visualizar detalhes"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                            title="Baixar planilha"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
+                          {upload.status === 'sucesso' ? (
+                            <>
+                              <button
+                                onClick={() => navigate(`/historico-uploads/${upload.id}`)}
+                                className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                title="Visualizar detalhes"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                title="Baixar planilha"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">—</span>
+                          )}
                         </div>
                       </td>
                     </tr>

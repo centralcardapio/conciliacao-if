@@ -6,7 +6,7 @@ interface UploadRecord {
   id: string;
   dataHora: Date;
   usuario: string;
-  status: 'sucesso' | 'erro' | 'parcial' | 'processando';
+  status: 'sucesso' | 'erro' | 'processando';
   totalLinhas: number;
   linhasValidas: number;
   erros: number;
@@ -27,13 +27,13 @@ const ITEMS_PER_PAGE = 10;
 
 const mockUploads: UploadRecord[] = [
   { id: '1', dataHora: new Date('2026-01-08T14:30:00'), usuario: 'João Silva', status: 'sucesso', totalLinhas: 1250, linhasValidas: 1250, erros: 0, avisos: 3, nomeArquivo: 'vendas_janeiro_2026.xlsx', totalPedidos: 1250, totalLojas: 15, valorTotal: 187500.00, periodoInicio: '01/01/2026', periodoFim: '07/01/2026' },
-  { id: '2', dataHora: new Date('2026-01-08T11:15:00'), usuario: 'Maria Santos', status: 'parcial', totalLinhas: 890, linhasValidas: 845, erros: 45, avisos: 12, nomeArquivo: 'vendas_loja_centro.xlsx', totalPedidos: 845, totalLojas: 1, valorTotal: 42250.00, periodoInicio: '01/01/2026', periodoFim: '07/01/2026' },
+  { id: '2', dataHora: new Date('2026-01-08T11:15:00'), usuario: 'Maria Santos', status: 'sucesso', totalLinhas: 890, linhasValidas: 845, erros: 0, avisos: 12, nomeArquivo: 'vendas_loja_centro.xlsx', totalPedidos: 845, totalLojas: 1, valorTotal: 42250.00, periodoInicio: '01/01/2026', periodoFim: '07/01/2026' },
   { id: '3', dataHora: new Date('2026-01-07T16:45:00'), usuario: 'Pedro Costa', status: 'erro', totalLinhas: 500, linhasValidas: 0, erros: 500, avisos: 0, nomeArquivo: 'vendas_corrupto.xlsx', totalPedidos: 0, totalLojas: 0, valorTotal: 0, periodoInicio: '-', periodoFim: '-' },
   { id: '4', dataHora: new Date('2026-01-07T09:20:00'), usuario: 'Ana Oliveira', status: 'sucesso', totalLinhas: 2100, linhasValidas: 2100, erros: 0, avisos: 8, nomeArquivo: 'vendas_regional_sul.xlsx', totalPedidos: 2100, totalLojas: 8, valorTotal: 315000.00, periodoInicio: '01/01/2026', periodoFim: '06/01/2026' },
   { id: '5', dataHora: new Date('2026-01-06T15:00:00'), usuario: 'João Silva', status: 'processando', totalLinhas: 3500, linhasValidas: 1200, erros: 0, avisos: 0, nomeArquivo: 'vendas_consolidado.xlsx', totalPedidos: 1200, totalLojas: 25, valorTotal: 180000.00, periodoInicio: '01/01/2026', periodoFim: '05/01/2026' },
   { id: '6', dataHora: new Date('2026-01-06T10:30:00'), usuario: 'Carlos Mendes', status: 'sucesso', totalLinhas: 780, linhasValidas: 780, erros: 0, avisos: 2, nomeArquivo: 'vendas_loja_shopping.xlsx', totalPedidos: 780, totalLojas: 1, valorTotal: 117000.00, periodoInicio: '01/01/2026', periodoFim: '05/01/2026' },
   { id: '7', dataHora: new Date('2026-01-05T14:10:00'), usuario: 'Maria Santos', status: 'sucesso', totalLinhas: 1560, linhasValidas: 1560, erros: 0, avisos: 0, nomeArquivo: 'vendas_dezembro_2025.xlsx', totalPedidos: 1560, totalLojas: 12, valorTotal: 234000.00, periodoInicio: '01/12/2025', periodoFim: '31/12/2025' },
-  { id: '8', dataHora: new Date('2026-01-05T08:45:00'), usuario: 'Pedro Costa', status: 'parcial', totalLinhas: 420, linhasValidas: 398, erros: 22, avisos: 5, nomeArquivo: 'vendas_loja_matriz.xlsx', totalPedidos: 398, totalLojas: 1, valorTotal: 59700.00, periodoInicio: '01/01/2026', periodoFim: '04/01/2026' },
+  { id: '8', dataHora: new Date('2026-01-05T08:45:00'), usuario: 'Pedro Costa', status: 'erro', totalLinhas: 420, linhasValidas: 0, erros: 420, avisos: 0, nomeArquivo: 'vendas_loja_matriz.xlsx', totalPedidos: 0, totalLojas: 0, valorTotal: 0, periodoInicio: '-', periodoFim: '-' },
 ];
 
 const HistoricoUploads: React.FC = () => {
@@ -123,13 +123,6 @@ const HistoricoUploads: React.FC = () => {
             Erro
           </span>
         );
-      case 'parcial':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-500/10 text-yellow-600 text-xs font-medium rounded-full">
-            <AlertCircle className="w-3.5 h-3.5" />
-            Parcial
-          </span>
-        );
       case 'processando':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
@@ -187,7 +180,6 @@ const HistoricoUploads: React.FC = () => {
           >
             <option value="todos">Todos os status</option>
             <option value="sucesso">Sucesso</option>
-            <option value="parcial">Parcial</option>
             <option value="erro">Erro</option>
             <option value="processando">Processando</option>
           </select>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/Pagination';
-import { ClipboardList, Calendar, Building2, Store, Search, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, CheckCircle, XCircle, MessageSquareWarning, RefreshCw } from 'lucide-react';
+import { ClipboardList, Calendar, Building2, Store, Search, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, CheckCircle, XCircle, MessageSquareWarning, RefreshCw, SearchCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -41,7 +41,7 @@ interface Tarefa {
   numeroPedidoVarejo: string;
   valor: number;
   data: Date;
-  tipo: 'cancelar' | 'contestar';
+  tipo: 'cancelar' | 'contestar' | 'investigar';
   status: 'aberto' | 'finalizado';
   lojaId: string;
   regionalId: string;
@@ -175,6 +175,36 @@ const mockTarefas: Tarefa[] = [{
   status: 'aberto',
   lojaId: '7',
   regionalId: '1'
+}, {
+  id: '9',
+  numeroPedidoIfood: 'IF-001242',
+  numeroPedidoVarejo: 'NF-2024-0009',
+  valor: 87.50,
+  data: new Date('2024-01-11'),
+  tipo: 'investigar',
+  status: 'aberto',
+  lojaId: '2',
+  regionalId: '5'
+}, {
+  id: '10',
+  numeroPedidoIfood: 'IF-001243',
+  numeroPedidoVarejo: 'NF-2024-0010',
+  valor: 145.00,
+  data: new Date('2024-01-11'),
+  tipo: 'investigar',
+  status: 'finalizado',
+  lojaId: '4',
+  regionalId: '3'
+}, {
+  id: '11',
+  numeroPedidoIfood: 'IF-001244',
+  numeroPedidoVarejo: 'NF-2024-0011',
+  valor: 220.75,
+  data: new Date('2024-01-10'),
+  tipo: 'investigar',
+  status: 'aberto',
+  lojaId: '1',
+  regionalId: '2'
 }];
 const tiposTarefa = [{
   value: '',
@@ -185,6 +215,9 @@ const tiposTarefa = [{
 }, {
   value: 'contestar',
   label: 'Contestar Pedido'
+}, {
+  value: 'investigar',
+  label: 'Investigar Pedido'
 }];
 const statusOptions = [{
   value: '',
@@ -317,11 +350,19 @@ const Tarefas: React.FC = () => {
       currency: 'BRL'
     }).format(value);
   };
-  const getTipoLabel = (tipo: 'cancelar' | 'contestar') => {
-    return tipo === 'cancelar' ? 'Cancelar Pedido' : 'Contestar Pedido';
+  const getTipoLabel = (tipo: 'cancelar' | 'contestar' | 'investigar') => {
+    switch (tipo) {
+      case 'cancelar': return 'Cancelar Pedido';
+      case 'contestar': return 'Contestar Pedido';
+      case 'investigar': return 'Investigar Pedido';
+    }
   };
-  const getTipoBadgeClass = (tipo: 'cancelar' | 'contestar') => {
-    return tipo === 'cancelar' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+  const getTipoBadgeClass = (tipo: 'cancelar' | 'contestar' | 'investigar') => {
+    switch (tipo) {
+      case 'cancelar': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+      case 'contestar': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      case 'investigar': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+    }
   };
   const getStatusLabel = (status: 'aberto' | 'finalizado') => {
     return status === 'aberto' ? 'Aberto' : 'Finalizado';
@@ -345,7 +386,7 @@ const Tarefas: React.FC = () => {
         </div>
 
         {/* Summary Cards by Task Type */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in">
           {/* Cancelar Pedido */}
           {(() => {
             const cancelarTotal = mockTarefas.filter(t => t.tipo === 'cancelar').length;
@@ -390,6 +431,30 @@ const Tarefas: React.FC = () => {
                   <span className="text-lg font-bold text-foreground">{Math.round(contestarPercent)}%</span>
                 </div>
                 <Progress value={contestarPercent} className="h-2" />
+              </div>
+            );
+          })()}
+
+          {/* Investigar Pedido */}
+          {(() => {
+            const investigarTotal = mockTarefas.filter(t => t.tipo === 'investigar').length;
+            const investigarFinalizados = mockTarefas.filter(t => t.tipo === 'investigar' && t.status === 'finalizado').length;
+            const investigarPercent = investigarTotal > 0 ? (investigarFinalizados / investigarTotal) * 100 : 0;
+            return (
+              <div className="bg-card border border-border rounded-xl p-5">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                      <SearchCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Investigar Pedido</h3>
+                      <p className="text-sm text-muted-foreground">{investigarFinalizados} de {investigarTotal} finalizadas</p>
+                    </div>
+                  </div>
+                  <span className="text-lg font-bold text-foreground">{Math.round(investigarPercent)}%</span>
+                </div>
+                <Progress value={investigarPercent} className="h-2" />
               </div>
             );
           })()}

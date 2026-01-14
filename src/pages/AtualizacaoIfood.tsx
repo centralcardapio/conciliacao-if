@@ -585,7 +585,7 @@ const AtualizacaoIfood: React.FC = () => {
                                     </button>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>Baixar relatório</p>
+                                    <p>Exportar planilha</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>

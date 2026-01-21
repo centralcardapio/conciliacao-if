@@ -113,14 +113,6 @@ const Dashboard: React.FC = () => {
       description: 'vs mês anterior',
     },
     {
-      title: 'Pedidos Pendentes',
-      value: '23',
-      icon: Clock,
-      change: '-12',
-      changeType: 'positive' as const,
-      description: 'vs ontem',
-    },
-    {
       title: 'Divergências',
       value: '15',
       icon: AlertCircle,
@@ -355,7 +347,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Main Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {stats.map((stat, index) => (
             <div 
               key={stat.title}

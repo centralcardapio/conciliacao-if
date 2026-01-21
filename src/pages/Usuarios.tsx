@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/Pagination';
-import { Plus, Pencil, Trash2, X, Search, Users, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Search, Users, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
 import { z } from 'zod';
 import { UserRole } from '@/types';
 
@@ -79,6 +79,7 @@ const Usuarios: React.FC = () => {
   const [formData, setFormData] = useState({ nome: '', email: '', tipo: '' as UserRole | '', regionalId: '', lojaId: '' });
   const [formError, setFormError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterRegionalId, setFilterRegionalId] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -111,13 +112,24 @@ const Usuarios: React.FC = () => {
   };
 
   const sortedAndFilteredUsuarios = useMemo(() => {
-    const filtered = usuarios.filter(u => 
-      u.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getTipoLabel(u.tipo).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getRegionalNome(u.regionalId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getLojaNome(u.lojaId).toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let filtered = usuarios;
+    
+    // Filtro por Regional
+    if (filterRegionalId) {
+      filtered = filtered.filter(u => u.regionalId === filterRegionalId);
+    }
+    
+    // Busca por texto (nome, email, tipo, regional, loja)
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(u => 
+        u.nome.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        getTipoLabel(u.tipo).toLowerCase().includes(term) ||
+        getRegionalNome(u.regionalId).toLowerCase().includes(term) ||
+        getLojaNome(u.lojaId).toLowerCase().includes(term)
+      );
+    }
     
     return filtered.sort((a, b) => {
       let comparison = 0;
@@ -136,7 +148,7 @@ const Usuarios: React.FC = () => {
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [usuarios, searchTerm, sortField, sortDirection, regionais, lojas]);
+  }, [usuarios, searchTerm, filterRegionalId, sortField, sortDirection, regionais, lojas]);
 
   const totalPages = Math.ceil(sortedAndFilteredUsuarios.length / ITEMS_PER_PAGE);
   const paginatedUsuarios = useMemo(() => {
@@ -146,6 +158,11 @@ const Usuarios: React.FC = () => {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterRegionalChange = (value: string) => {
+    setFilterRegionalId(value);
     setCurrentPage(1);
   };
 
@@ -266,15 +283,30 @@ const Usuarios: React.FC = () => {
 
         {/* Search & Actions Bar */}
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between animate-fade-in">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Buscar usuário por nome, email, regional ou loja..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
-            />
+          <div className="flex flex-1 gap-3 items-center">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por nome, email, loja ou tipo..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+              />
+            </div>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <select
+                value={filterRegionalId}
+                onChange={(e) => handleFilterRegionalChange(e.target.value)}
+                className="h-11 pl-9 pr-8 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all appearance-none cursor-pointer"
+              >
+                <option value="">Todas Regionais</option>
+                {regionais.map(r => (
+                  <option key={r.id} value={r.id}>{r.nome}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <button 
             onClick={openCreateModal} 

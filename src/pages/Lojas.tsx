@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/Pagination';
-import { Plus, Pencil, Trash2, X, Search, Store, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Search, Store, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
 import { z } from 'zod';
 
 interface Regional {
@@ -55,6 +55,7 @@ const Lojas: React.FC = () => {
   const [formData, setFormData] = useState({ nome: '', idLojaErp: '', idLojaIfood: '', regionalId: '' });
   const [formError, setFormError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterRegionalId, setFilterRegionalId] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -74,12 +75,23 @@ const Lojas: React.FC = () => {
   };
 
   const sortedAndFilteredLojas = useMemo(() => {
-    const filtered = lojas.filter(l => 
-      l.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      l.idLojaErp.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      l.idLojaIfood.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getRegionalNome(l.regionalId).toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let filtered = lojas;
+    
+    // Filtro por Regional
+    if (filterRegionalId) {
+      filtered = filtered.filter(l => l.regionalId === filterRegionalId);
+    }
+    
+    // Busca por texto (nome, ID ERP, ID iFood, regional)
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(l => 
+        l.nome.toLowerCase().includes(term) ||
+        l.idLojaErp.toLowerCase().includes(term) ||
+        l.idLojaIfood.toLowerCase().includes(term) ||
+        getRegionalNome(l.regionalId).toLowerCase().includes(term)
+      );
+    }
     
     return filtered.sort((a, b) => {
       let comparison = 0;
@@ -96,7 +108,7 @@ const Lojas: React.FC = () => {
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [lojas, searchTerm, sortField, sortDirection, regionais]);
+  }, [lojas, searchTerm, filterRegionalId, sortField, sortDirection, regionais]);
 
   const totalPages = Math.ceil(sortedAndFilteredLojas.length / ITEMS_PER_PAGE);
   const paginatedLojas = useMemo(() => {
@@ -106,6 +118,11 @@ const Lojas: React.FC = () => {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterRegionalChange = (value: string) => {
+    setFilterRegionalId(value);
     setCurrentPage(1);
   };
 
@@ -214,15 +231,30 @@ const Lojas: React.FC = () => {
 
         {/* Search & Actions Bar */}
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between animate-fade-in">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Buscar loja por nome ou regional..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
-            />
+          <div className="flex flex-1 gap-3 items-center">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por nome, ID ERP ou ID iFood..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+              />
+            </div>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <select
+                value={filterRegionalId}
+                onChange={(e) => handleFilterRegionalChange(e.target.value)}
+                className="h-11 pl-9 pr-8 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all appearance-none cursor-pointer"
+              >
+                <option value="">Todas Regionais</option>
+                {regionais.map(r => (
+                  <option key={r.id} value={r.id}>{r.nome}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <button 
             onClick={openCreateModal} 

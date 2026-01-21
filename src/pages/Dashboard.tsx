@@ -133,22 +133,6 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  const financialStats = [
-    {
-      title: 'Volume Conciliado',
-      value: 'R$ 458.932,00',
-      icon: TrendingUp,
-      change: '+15,2%',
-      changeType: 'positive' as const,
-    },
-    {
-      title: 'Valor em Divergência',
-      value: 'R$ 3.245,80',
-      icon: TrendingDown,
-      change: '0,7% do total',
-      changeType: 'neutral' as const,
-    },
-  ];
 
   const operationalStats = [
     {
@@ -369,26 +353,6 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
 
-        {/* Financial Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {financialStats.map((stat, index) => (
-            <div 
-              key={stat.title}
-              className="bg-card border border-border rounded-xl p-6 animate-fade-in"
-              style={{ animationDelay: `${(index + 4) * 50}ms` }}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-foreground/5 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <stat.icon className="w-6 h-6 text-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{stat.title}</p>
-                  <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
 
         {/* Operational Stats */}
         <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">

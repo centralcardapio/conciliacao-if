@@ -107,6 +107,7 @@ const Dashboard: React.FC = () => {
     {
       title: 'Pedidos Conciliados',
       value: '1.247',
+      amount: 'R$ 458.932,00',
       icon: CheckCircle2,
       change: '+8,3%',
       changeType: 'positive' as const,
@@ -115,6 +116,7 @@ const Dashboard: React.FC = () => {
     {
       title: 'Divergências',
       value: '15',
+      amount: 'R$ 3.245,80',
       icon: AlertCircle,
       change: '+3',
       changeType: 'negative' as const,
@@ -123,6 +125,7 @@ const Dashboard: React.FC = () => {
     {
       title: 'Tarefas Abertas',
       value: '8',
+      amount: 'R$ 1.890,50',
       icon: ClipboardList,
       change: '5 cancelar, 3 contestar',
       changeType: 'neutral' as const,
@@ -361,6 +364,7 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="text-sm text-muted-foreground">{stat.title}</p>
               <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
+              <p className="text-sm font-medium text-muted-foreground mt-0.5">{stat.amount}</p>
             </div>
           ))}
         </div>

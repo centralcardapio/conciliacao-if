@@ -239,15 +239,6 @@ const Lojas: React.FC = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-foreground/5 border-b border-border">
-                  <th className="text-left px-6 py-4 w-24">
-                    <button
-                      onClick={() => handleSort('id')}
-                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
-                    >
-                      ID
-                      <SortIcon field="id" />
-                    </button>
-                  </th>
                   <th className="text-left px-6 py-4">
                     <button
                       onClick={() => handleSort('nome')}
@@ -274,7 +265,7 @@ const Lojas: React.FC = () => {
               <tbody className="divide-y divide-border">
                 {sortedAndFilteredLojas.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-16 text-center">
+                    <td colSpan={3} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
                           <Store className="w-6 h-6 text-muted-foreground" />
@@ -297,11 +288,6 @@ const Lojas: React.FC = () => {
                       className="group hover:bg-secondary/40 transition-colors"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center justify-center w-8 h-8 bg-secondary rounded-lg text-xs font-mono text-muted-foreground">
-                          {loja.id}
-                        </span>
-                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-foreground/5 rounded-lg flex items-center justify-center">

@@ -381,9 +381,6 @@ const Dashboard: React.FC = () => {
                   <p className="text-sm text-muted-foreground">{stat.title}</p>
                   <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
                 </div>
-                <div className={`text-sm font-medium ${getChangeColor(stat.changeType)}`}>
-                  {stat.change}
-                </div>
               </div>
             </div>
           ))}

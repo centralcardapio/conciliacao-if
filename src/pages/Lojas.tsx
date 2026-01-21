@@ -250,6 +250,24 @@ const Lojas: React.FC = () => {
                   </th>
                   <th className="text-left px-6 py-4">
                     <button
+                      onClick={() => handleSort('idLojaErp')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      ID ERP
+                      <SortIcon field="idLojaErp" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button
+                      onClick={() => handleSort('idLojaIfood')}
+                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                    >
+                      ID iFood
+                      <SortIcon field="idLojaIfood" />
+                    </button>
+                  </th>
+                  <th className="text-left px-6 py-4">
+                    <button
                       onClick={() => handleSort('regional')}
                       className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
                     >
@@ -265,7 +283,7 @@ const Lojas: React.FC = () => {
               <tbody className="divide-y divide-border">
                 {sortedAndFilteredLojas.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-6 py-16 text-center">
+                    <td colSpan={5} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
                           <Store className="w-6 h-6 text-muted-foreground" />
@@ -295,6 +313,12 @@ const Lojas: React.FC = () => {
                           </div>
                           <span className="font-medium text-foreground">{loja.nome}</span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-mono text-muted-foreground">{loja.idLojaErp}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-mono text-muted-foreground">{loja.idLojaIfood}</span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">

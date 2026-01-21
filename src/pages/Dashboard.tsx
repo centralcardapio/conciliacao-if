@@ -364,7 +364,7 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="text-sm text-muted-foreground">{stat.title}</p>
               <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
-              <p className="text-sm font-medium text-muted-foreground mt-0.5">{stat.amount}</p>
+              <p className="text-lg font-semibold text-foreground/80 mt-1">{stat.amount}</p>
             </div>
           ))}
         </div>

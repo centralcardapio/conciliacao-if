@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/Pagination';
-import { ClipboardList, Calendar, Building2, Store, Search, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, CheckCircle, XCircle, MessageSquareWarning, RefreshCw, SearchCheck } from 'lucide-react';
+import { ClipboardList, Calendar, Building2, Store, Search, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, CheckCircle, XCircle, MessageSquareWarning, RefreshCw, SearchCheck, Receipt } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -41,7 +41,7 @@ interface Tarefa {
   numeroPedidoVarejo: string;
   valor: number;
   data: Date;
-  tipo: 'cancelar' | 'contestar' | 'investigar';
+  tipo: 'cancelar' | 'contestar' | 'investigar' | 'emitir_cupom';
   status: 'aberto' | 'finalizado';
   lojaId: string;
   regionalId: string;
@@ -218,6 +218,9 @@ const tiposTarefa = [{
 }, {
   value: 'investigar',
   label: 'Investigar Pedido'
+}, {
+  value: 'emitir_cupom',
+  label: 'Emitir Cupom Fiscal'
 }];
 const statusOptions = [{
   value: '',
@@ -350,18 +353,20 @@ const Tarefas: React.FC = () => {
       currency: 'BRL'
     }).format(value);
   };
-  const getTipoLabel = (tipo: 'cancelar' | 'contestar' | 'investigar') => {
+  const getTipoLabel = (tipo: 'cancelar' | 'contestar' | 'investigar' | 'emitir_cupom') => {
     switch (tipo) {
       case 'cancelar': return 'Cancelar Pedido';
       case 'contestar': return 'Contestar Pedido';
       case 'investigar': return 'Investigar Pedido';
+      case 'emitir_cupom': return 'Emitir Cupom Fiscal';
     }
   };
-  const getTipoBadgeClass = (tipo: 'cancelar' | 'contestar' | 'investigar') => {
+  const getTipoBadgeClass = (tipo: 'cancelar' | 'contestar' | 'investigar' | 'emitir_cupom') => {
     switch (tipo) {
       case 'cancelar': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
       case 'contestar': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
       case 'investigar': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'emitir_cupom': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
     }
   };
   const getStatusLabel = (status: 'aberto' | 'finalizado') => {
@@ -386,7 +391,7 @@ const Tarefas: React.FC = () => {
         </div>
 
         {/* Summary Cards by Task Type */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 animate-fade-in">
           {/* Cancelar Pedido */}
           {(() => {
             const cancelarTotal = mockTarefas.filter(t => t.tipo === 'cancelar').length;
@@ -479,6 +484,30 @@ const Tarefas: React.FC = () => {
                   <span className="text-lg font-bold text-foreground">{Math.round(alterarPercent)}%</span>
                 </div>
                 <Progress value={alterarPercent} className="h-2" />
+              </div>
+            );
+          })()}
+
+          {/* Emitir Cupom Fiscal */}
+          {(() => {
+            const emitirCupomTotal = mockTarefas.filter(t => t.tipo === 'emitir_cupom').length;
+            const emitirCupomFinalizados = mockTarefas.filter(t => t.tipo === 'emitir_cupom' && t.status === 'finalizado').length;
+            const emitirCupomPercent = emitirCupomTotal > 0 ? (emitirCupomFinalizados / emitirCupomTotal) * 100 : 0;
+            return (
+              <div className="bg-card border border-border rounded-xl p-5">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
+                      <Receipt className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Emitir Cupom Fiscal</h3>
+                      <p className="text-sm text-muted-foreground">{emitirCupomFinalizados} de {emitirCupomTotal} finalizadas</p>
+                    </div>
+                  </div>
+                  <span className="text-lg font-bold text-foreground">{Math.round(emitirCupomPercent)}%</span>
+                </div>
+                <Progress value={emitirCupomPercent} className="h-2" />
               </div>
             );
           })()}

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthContextType, UserRole } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 // Mock users for testing
 const mockUsers = [
@@ -41,87 +42,118 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for existing session on mount
-    const storedUser = localStorage.getItem('conciliacao_user');
-    const storedToken = localStorage.getItem('conciliacao_token');
-    
-    if (storedUser && storedToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        localStorage.removeItem('conciliacao_user');
-        localStorage.removeItem('conciliacao_token');
+  // Helper to fetch profile and update state
+  const fetchProfileAndSetUser = async (sessionUser: any) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', sessionUser.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // If profile doesn't exist yet (race condition with trigger), fallback to metadata
+        setUser({
+          id: sessionUser.id, // using string UUID as id now
+          name: sessionUser.user_metadata?.name || sessionUser.email,
+          email: sessionUser.email,
+          role: (sessionUser.user_metadata?.role as UserRole) || 'store',
+          // These might be empty initially if not set in profile
+          loja: profile?.store_id || undefined,
+          regiao: profile?.region_id || undefined
+        } as unknown as User); // Temporary cast until we fix User type to accept string ID
+        return;
       }
+
+      if (profile) {
+        setUser({
+          id: profile.id as any, // ID in DB is UUID (string), app expects number currently. We need to fix types.
+          name: profile.name,
+          email: profile.email,
+          role: profile.role,
+          loja: profile.store_id || undefined,
+          regiao: profile.region_id || undefined
+        } as unknown as User);
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching profile:', err);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        await fetchProfileAndSetUser(session.user);
+      } else {
+        setUser(null);
+        setIsLoading(false);
+      }
+    });
+
+    // Listen for changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchProfileAndSetUser(session.user);
+      } else {
+        setUser(null);
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const foundUser = mockUsers.find(
-      u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    
-    if (!foundUser) {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
       setIsLoading(false);
-      throw new Error('Email ou senha incorretos');
+      throw new Error(error.message === 'Invalid login credentials' ? 'Email ou senha incorretos' : error.message);
     }
-    
-    const { password: _, ...userWithoutPassword } = foundUser;
-    const token = `mock-jwt-token-${Date.now()}`;
-    
-    localStorage.setItem('conciliacao_user', JSON.stringify(userWithoutPassword));
-    localStorage.setItem('conciliacao_token', token);
-    
-    setUser(userWithoutPassword);
-    setIsLoading(false);
+    // state update handled by onAuthStateChange
   };
 
-  const logout = (): void => {
-    localStorage.removeItem('conciliacao_user');
-    localStorage.removeItem('conciliacao_token');
+  const logout = async (): Promise<void> => {
+    setIsLoading(true);
+    await supabase.auth.signOut();
     setUser(null);
+    setIsLoading(false);
   };
 
   const forgotPassword = async (email: string): Promise<void> => {
     setIsLoading(true);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const foundUser = mockUsers.find(
-      u => u.email.toLowerCase() === email.toLowerCase()
-    );
-    
-    if (!foundUser) {
-      setIsLoading(false);
-      throw new Error('Email não encontrado no sistema');
-    }
-    
-    // In a real app, this would send an email
-    console.log(`Password reset email sent to: ${email}`);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
     setIsLoading(false);
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   const resetPassword = async (token: string, newPassword: string): Promise<void> => {
+    // Note: Supabase handles token via URL in resetPasswordForEmail flow.
+    // Usually you just call updateUser with new password when session is established via the link.
+    // For now assuming we are in a simplistic flow or logged in via the link.
     setIsLoading(true);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // In a real app, this would validate the token and update the password
-    if (!token) {
-      setIsLoading(false);
-      throw new Error('Link expirado. Solicite um novo email de recuperação');
-    }
-    
-    console.log(`Password reset with token: ${token}`);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
     setIsLoading(false);
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   return (

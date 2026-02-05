@@ -125,11 +125,11 @@ const getMenuGroups = (role: UserRole): MenuGroup[] => {
   ];
 
   switch (role) {
-    case 'loja':
+    case 'store':
       return lojaGroups;
     case 'regional':
       return regionalGroups;
-    case 'corporativo':
+    case 'corporate':
       return corporativoGroups;
     default:
       return lojaGroups;
@@ -153,7 +153,7 @@ const iconComponents: Record<string, React.ComponentType<{ className?: string }>
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  const menuGroups = getMenuGroups(user?.role || 'loja');
+  const menuGroups = getMenuGroups(user?.role || 'store');
 
   return (
     <>
@@ -200,7 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="space-y-1">
                 {group.items.map((item) => {
                   const IconComponent = iconComponents[item.icon] || LayoutDashboard;
-                  
+
                   return (
                     <NavLink
                       key={item.id}

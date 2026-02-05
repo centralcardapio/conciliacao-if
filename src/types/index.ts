@@ -1,4 +1,4 @@
-export type UserRole = 'loja' | 'regional' | 'corporativo';
+export type UserRole = 'store' | 'regional' | 'corporate';
 
 export interface User {
   id: number;

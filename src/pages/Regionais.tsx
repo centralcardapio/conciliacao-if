@@ -1,42 +1,73 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/Pagination';
-import { Plus, Pencil, Trash2, X, Search, Map, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Search, Map, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Regional {
   id: string;
-  nome: string;
+  name: string;
+  created_at?: string;
 }
 
-type SortField = 'id' | 'nome';
+type SortField = 'id' | 'name';
 type SortDirection = 'asc' | 'desc';
 
 const regionalSchema = z.object({
-  nome: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
+  name: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
 });
 
 const ITEMS_PER_PAGE = 50;
 
 const Regionais: React.FC = () => {
-  const [regionais, setRegionais] = useState<Regional[]>([
-    { id: '1', nome: 'Sul' },
-    { id: '2', nome: 'Sudeste' },
-    { id: '3', nome: 'Centro-Oeste' },
-    { id: '4', nome: 'Nordeste' },
-    { id: '5', nome: 'Norte' },
-  ]);
+  const { toast } = useToast();
+  const [regionais, setRegionais] = useState<Regional[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingRegional, setEditingRegional] = useState<Regional | null>(null);
   const [deletingRegional, setDeletingRegional] = useState<Regional | null>(null);
-  const [formData, setFormData] = useState({ nome: '' });
+
+  // Form State
+  const [formData, setFormData] = useState({ name: '' });
   const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // List State
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<SortField>('id');
+  const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  // Fetch Data
+  const fetchRegionais = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('regions')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setRegionais(data || []);
+    } catch (error: any) {
+      console.error('Error fetching regions:', error);
+      toast({
+        title: "Erro ao carregar regionais",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRegionais();
+  }, []);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -49,17 +80,20 @@ const Regionais: React.FC = () => {
   };
 
   const sortedAndFilteredRegionais = useMemo(() => {
-    const filtered = regionais.filter(r => 
-      r.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = regionais.filter(r =>
+      r.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
+
     return filtered.sort((a, b) => {
       let comparison = 0;
+      // Basic comparison
+      comparison = a.name.localeCompare(b.name, 'pt-BR');
+
+      // If sorting by ID (which is UUID now), strictly speaking we might want alphabetical too or creation date
       if (sortField === 'id') {
-        comparison = Number(a.id) - Number(b.id);
-      } else {
-        comparison = a.nome.localeCompare(b.nome, 'pt-BR');
+        comparison = a.id.localeCompare(b.id);
       }
+
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }, [regionais, searchTerm, sortField, sortDirection]);
@@ -79,21 +113,21 @@ const Regionais: React.FC = () => {
     if (sortField !== field) {
       return <ArrowUpDown className="w-4 h-4 text-muted-foreground" />;
     }
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp className="w-4 h-4 text-foreground" />
       : <ArrowDown className="w-4 h-4 text-foreground" />;
   };
 
   const openCreateModal = () => {
     setEditingRegional(null);
-    setFormData({ nome: '' });
+    setFormData({ name: '' });
     setFormError('');
     setIsModalOpen(true);
   };
 
   const openEditModal = (regional: Regional) => {
     setEditingRegional(regional);
-    setFormData({ nome: regional.nome });
+    setFormData({ name: regional.name });
     setFormError('');
     setIsModalOpen(true);
   };
@@ -106,8 +140,9 @@ const Regionais: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingRegional(null);
-    setFormData({ nome: '' });
+    setFormData({ name: '' });
     setFormError('');
+    setIsSubmitting(false);
   };
 
   const closeDeleteModal = () => {
@@ -115,7 +150,7 @@ const Regionais: React.FC = () => {
     setDeletingRegional(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
@@ -125,27 +160,70 @@ const Regionais: React.FC = () => {
       return;
     }
 
-    if (editingRegional) {
-      setRegionais(prev =>
-        prev.map(r =>
-          r.id === editingRegional.id ? { ...r, nome: formData.nome.trim() } : r
-        )
-      );
-    } else {
-      const newRegional: Regional = {
-        id: Date.now().toString(),
-        nome: formData.nome.trim(),
-      };
-      setRegionais(prev => [...prev, newRegional]);
-    }
+    setIsSubmitting(true);
 
-    closeModal();
+    try {
+      if (editingRegional) {
+        // Update
+        const { error } = await supabase
+          .from('regions')
+          .update({ name: formData.name.trim() })
+          .eq('id', editingRegional.id);
+
+        if (error) throw error;
+
+        toast({ title: "Regional atualizada com sucesso" });
+      } else {
+        // Create
+        const { error } = await supabase
+          .from('regions')
+          .insert([{ name: formData.name.trim() }]);
+
+        if (error) throw error;
+
+        toast({ title: "Regional criada com sucesso" });
+      }
+
+      await fetchRegionais();
+      closeModal();
+    } catch (error: any) {
+      console.error('Error saving regional:', error);
+      setFormError(error.message || "Erro ao salvar regional");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDelete = () => {
-    if (deletingRegional) {
-      setRegionais(prev => prev.filter(r => r.id !== deletingRegional.id));
+  const handleDelete = async () => {
+    if (!deletingRegional) return;
+
+    try {
+      const { error } = await supabase
+        .from('regions')
+        .delete()
+        .eq('id', deletingRegional.id);
+
+      if (error) throw error;
+
+      toast({ title: "Regional excluída com sucesso" });
+      await fetchRegionais();
       closeDeleteModal();
+    } catch (error: any) {
+      console.error('Error deleting regional:', error);
+      // Check for foreign key constraint violation (usually code 23503)
+      if (error.code === '23503') {
+        toast({
+          title: "Não é possível excluir",
+          description: "Esta regional possui lojas vinculadas.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erro ao excluir",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -179,8 +257,8 @@ const Regionais: React.FC = () => {
               className="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
             />
           </div>
-          <button 
-            onClick={openCreateModal} 
+          <button
+            onClick={openCreateModal}
             className="h-11 px-4 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 transition-colors inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -190,99 +268,107 @@ const Regionais: React.FC = () => {
 
         {/* Table Card */}
         <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-foreground/5 border-b border-border">
-                  <th className="text-left px-6 py-4">
-                    <button
-                      onClick={() => handleSort('nome')}
-                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
-                    >
-                      Nome
-                      <SortIcon field="nome" />
-                    </button>
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-28">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {sortedAndFilteredRegionais.length === 0 ? (
-                  <tr>
-                    <td colSpan={2} className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
-                          <Map className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-foreground font-medium">
-                            {searchTerm ? 'Nenhuma regional encontrada' : 'Nenhuma regional cadastrada'}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {searchTerm ? 'Tente buscar por outro termo' : 'Clique em "Nova Regional" para começar'}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedRegionais.map((regional, index) => (
-                    <tr 
-                      key={regional.id} 
-                      className="group hover:bg-secondary/40 transition-colors"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-foreground/5 rounded-lg flex items-center justify-center">
-                            <Map className="w-4 h-4 text-foreground/70" />
-                          </div>
-                          <span className="font-medium text-foreground">{regional.nome}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => openEditModal(regional)}
-                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                            title="Editar"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(regional)}
-                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+          {isLoading ? (
+            <div className="p-12 flex justify-center items-center">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-foreground/5 border-b border-border">
+                      <th className="text-left px-6 py-4">
+                        <button
+                          onClick={() => handleSort('name')}
+                          className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                        >
+                          Nome
+                          <SortIcon field="name" />
+                        </button>
+                      </th>
+                      <th className="text-right px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-28">
+                        Ações
+                      </th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {sortedAndFilteredRegionais.length === 0 ? (
+                      <tr>
+                        <td colSpan={2} className="px-6 py-16 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
+                              <Map className="w-6 h-6 text-muted-foreground" />
+                            </div>
+                            <div>
+                              <p className="text-foreground font-medium">
+                                {searchTerm ? 'Nenhuma regional encontrada' : 'Nenhuma regional cadastrada'}
+                              </p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {searchTerm ? 'Tente buscar por outro termo' : 'Clique em "Nova Regional" para começar'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedRegionais.map((regional, index) => (
+                        <tr
+                          key={regional.id}
+                          className="group hover:bg-secondary/40 transition-colors"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-foreground/5 rounded-lg flex items-center justify-center">
+                                <Map className="w-4 h-4 text-foreground/70" />
+                              </div>
+                              <span className="font-medium text-foreground">{regional.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => openEditModal(regional)}
+                                className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                title="Editar"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => openDeleteModal(regional)}
+                                className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            totalItems={sortedAndFilteredRegionais.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            itemLabel="regional"
-            itemLabelPlural="regionais"
-          />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={sortedAndFilteredRegionais.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                itemLabel="regional"
+                itemLabelPlural="regionais"
+              />
+            </>
+          )}
         </div>
       </div>
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div 
+          <div
             className="bg-background border border-border rounded-2xl w-full max-w-md shadow-2xl animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
@@ -295,8 +381,8 @@ const Regionais: React.FC = () => {
                   {editingRegional ? 'Editar Regional' : 'Nova Regional'}
                 </h2>
               </div>
-              <button 
-                onClick={closeModal} 
+              <button
+                onClick={closeModal}
                 className="w-8 h-8 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-muted-foreground" />
@@ -310,27 +396,29 @@ const Regionais: React.FC = () => {
                 </div>
               )}
               <div className="space-y-2">
-                <label htmlFor="nome" className="block text-sm font-medium text-foreground">
+                <label htmlFor="name" className="block text-sm font-medium text-foreground">
                   Nome da Regional
                 </label>
                 <input
-                  id="nome"
+                  id="name"
                   type="text"
-                  value={formData.nome}
-                  onChange={(e) => setFormData({ nome: e.target.value })}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ name: e.target.value })}
                   placeholder="Ex: Sul, Sudeste, Centro-Oeste..."
                   className="form-input"
                   autoFocus
+                  disabled={isSubmitting}
                 />
                 <p className="text-xs text-muted-foreground">
                   O nome deve ser único e identificar claramente a região geográfica.
                 </p>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={closeModal} className="btn-secondary flex-1">
+                <button type="button" onClick={closeModal} className="btn-secondary flex-1" disabled={isSubmitting}>
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary flex-1">
+                <button type="submit" className="btn-primary flex-1 flex items-center justify-center gap-2" disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   {editingRegional ? 'Salvar Alterações' : 'Criar Regional'}
                 </button>
               </div>
@@ -342,7 +430,7 @@ const Regionais: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && deletingRegional && (
         <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div 
+          <div
             className="bg-background border border-border rounded-2xl w-full max-w-md shadow-2xl animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
@@ -353,7 +441,7 @@ const Regionais: React.FC = () => {
               <h2 className="text-lg font-semibold text-foreground">Excluir Regional</h2>
               <p className="text-muted-foreground mt-2">
                 Tem certeza que deseja excluir a regional{' '}
-                <strong className="text-foreground">{deletingRegional.nome}</strong>?
+                <strong className="text-foreground">{deletingRegional.name}</strong>?
               </p>
               <p className="text-sm text-muted-foreground mt-3 p-3 bg-secondary/50 rounded-lg">
                 Esta ação não pode ser desfeita. Todas as lojas vinculadas a esta regional precisarão ser reatribuídas.
@@ -363,9 +451,10 @@ const Regionais: React.FC = () => {
               <button onClick={closeDeleteModal} className="btn-secondary flex-1">
                 Cancelar
               </button>
-              <button 
-                onClick={handleDelete} 
+              <button
+                onClick={handleDelete}
                 className="flex-1 px-4 py-2.5 bg-destructive text-destructive-foreground font-medium rounded-lg hover:bg-destructive/90 transition-colors"
+                disabled={isSubmitting}
               >
                 Sim, Excluir
               </button>

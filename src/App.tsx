@@ -40,7 +40,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            
+
             {/* Protected Routes */}
             <Route path="/home" element={
               <ProtectedRoute>
@@ -52,7 +52,7 @@ const App = () => (
                 <Dashboard />
               </ProtectedRoute>
             } />
-            
+
             <Route path="/base-pedidos" element={
               <ProtectedRoute>
                 <BasePedidos />
@@ -113,10 +113,10 @@ const App = () => (
                 <Tarefas />
               </ProtectedRoute>
             } />
-            
+
             {/* Redirects */}
             <Route path="/" element={<Navigate to="/home" replace />} />
-            
+
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>

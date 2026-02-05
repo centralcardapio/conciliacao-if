@@ -1,67 +1,98 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/Pagination';
-import { Plus, Pencil, Trash2, X, Search, Store, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Search, Store, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown, Filter, Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Regional {
   id: string;
-  nome: string;
+  name: string;
 }
 
 interface Loja {
   id: string;
-  nome: string;
-  idLojaErp: string;
-  idLojaIfood: string;
-  regionalId: string;
+  name: string;
+  erp_code: string;
+  ifood_code: string;
+  region_id: string;
 }
 
-type SortField = 'id' | 'nome' | 'idLojaErp' | 'idLojaIfood' | 'regional';
+type SortField = 'id' | 'name' | 'erp_code' | 'ifood_code' | 'region';
 type SortDirection = 'asc' | 'desc';
 
 const lojaSchema = z.object({
-  nome: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
-  idLojaErp: z.string().trim().min(1, 'ID Loja ERP é obrigatório').max(50, 'ID Loja ERP deve ter no máximo 50 caracteres'),
-  idLojaIfood: z.string().trim().min(1, 'ID Loja iFood é obrigatório').max(50, 'ID Loja iFood deve ter no máximo 50 caracteres'),
-  regionalId: z.string().min(1, 'Regional é obrigatória'),
+  name: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
+  erp_code: z.string().trim().min(1, 'ID Loja ERP é obrigatório').max(50, 'ID Loja ERP deve ter no máximo 50 caracteres'),
+  ifood_code: z.string().trim().min(1, 'ID Loja iFood é obrigatório').max(50, 'ID Loja iFood deve ter no máximo 50 caracteres'),
+  region_id: z.string().min(1, 'Regional é obrigatória'),
 });
 
 const ITEMS_PER_PAGE = 50;
 
-// Mock regionais para o select
-const mockRegionais: Regional[] = [
-  { id: '1', nome: 'Sul' },
-  { id: '2', nome: 'Sudeste' },
-  { id: '3', nome: 'Centro-Oeste' },
-  { id: '4', nome: 'Nordeste' },
-  { id: '5', nome: 'Norte' },
-];
-
 const Lojas: React.FC = () => {
-  const [lojas, setLojas] = useState<Loja[]>([
-    { id: '1', nome: 'Loja Centro', idLojaErp: 'ERP001', idLojaIfood: 'IF001', regionalId: '2' },
-    { id: '2', nome: 'Loja Norte', idLojaErp: 'ERP002', idLojaIfood: 'IF002', regionalId: '5' },
-    { id: '3', nome: 'Loja Sul', idLojaErp: 'ERP003', idLojaIfood: 'IF003', regionalId: '1' },
-    { id: '4', nome: 'Loja Oeste', idLojaErp: 'ERP004', idLojaIfood: 'IF004', regionalId: '3' },
-    { id: '5', nome: 'Loja Leste', idLojaErp: 'ERP005', idLojaIfood: 'IF005', regionalId: '2' },
-  ]);
+  const { toast } = useToast();
+  const [lojas, setLojas] = useState<Loja[]>([]);
+  const [regionais, setRegionais] = useState<Regional[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [regionais] = useState<Regional[]>(mockRegionais);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingLoja, setEditingLoja] = useState<Loja | null>(null);
   const [deletingLoja, setDeletingLoja] = useState<Loja | null>(null);
-  const [formData, setFormData] = useState({ nome: '', idLojaErp: '', idLojaIfood: '', regionalId: '' });
+
+  // Form State
+  const [formData, setFormData] = useState({ name: '', erp_code: '', ifood_code: '', region_id: '' });
   const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // List State
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRegionalId, setFilterRegionalId] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<SortField>('id');
+  const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch Lojas
+      const { data: storesData, error: storesError } = await supabase
+        .from('stores')
+        .select('*');
+
+      if (storesError) throw storesError;
+
+      // Fetch Regionais
+      const { data: regionsData, error: regionsError } = await supabase
+        .from('regions')
+        .select('id, name')
+        .order('name');
+
+      if (regionsError) throw regionsError;
+
+      setLojas(storesData || []);
+      setRegionais(regionsData || []);
+
+    } catch (error: any) {
+      console.error('Error fetching data:', error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const getRegionalNome = (regionalId: string) => {
-    return regionais.find(r => r.id === regionalId)?.nome || '-';
+    return regionais.find(r => r.id === regionalId)?.name || '-';
   };
 
   const handleSort = (field: SortField) => {
@@ -76,35 +107,35 @@ const Lojas: React.FC = () => {
 
   const sortedAndFilteredLojas = useMemo(() => {
     let filtered = lojas;
-    
+
     // Filtro por Regional
     if (filterRegionalId) {
-      filtered = filtered.filter(l => l.regionalId === filterRegionalId);
+      filtered = filtered.filter(l => l.region_id === filterRegionalId);
     }
-    
-    // Busca por texto (nome, ID ERP, ID iFood, regional)
+
+    // Busca por texto
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(l => 
-        l.nome.toLowerCase().includes(term) ||
-        l.idLojaErp.toLowerCase().includes(term) ||
-        l.idLojaIfood.toLowerCase().includes(term) ||
-        getRegionalNome(l.regionalId).toLowerCase().includes(term)
+      filtered = filtered.filter(l =>
+        l.name.toLowerCase().includes(term) ||
+        l.erp_code.toLowerCase().includes(term) ||
+        l.ifood_code.toLowerCase().includes(term) ||
+        getRegionalNome(l.region_id).toLowerCase().includes(term)
       );
     }
-    
+
     return filtered.sort((a, b) => {
       let comparison = 0;
       if (sortField === 'id') {
-        comparison = Number(a.id) - Number(b.id);
-      } else if (sortField === 'nome') {
-        comparison = a.nome.localeCompare(b.nome, 'pt-BR');
-      } else if (sortField === 'idLojaErp') {
-        comparison = a.idLojaErp.localeCompare(b.idLojaErp, 'pt-BR');
-      } else if (sortField === 'idLojaIfood') {
-        comparison = a.idLojaIfood.localeCompare(b.idLojaIfood, 'pt-BR');
+        comparison = a.id.localeCompare(b.id);
+      } else if (sortField === 'name') {
+        comparison = a.name.localeCompare(b.name, 'pt-BR');
+      } else if (sortField === 'erp_code') {
+        comparison = a.erp_code.localeCompare(b.erp_code, 'pt-BR');
+      } else if (sortField === 'ifood_code') {
+        comparison = a.ifood_code.localeCompare(b.ifood_code, 'pt-BR');
       } else {
-        comparison = getRegionalNome(a.regionalId).localeCompare(getRegionalNome(b.regionalId), 'pt-BR');
+        comparison = getRegionalNome(a.region_id).localeCompare(getRegionalNome(b.region_id), 'pt-BR');
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
@@ -130,21 +161,26 @@ const Lojas: React.FC = () => {
     if (sortField !== field) {
       return <ArrowUpDown className="w-4 h-4 text-muted-foreground" />;
     }
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp className="w-4 h-4 text-foreground" />
       : <ArrowDown className="w-4 h-4 text-foreground" />;
   };
 
   const openCreateModal = () => {
     setEditingLoja(null);
-    setFormData({ nome: '', idLojaErp: '', idLojaIfood: '', regionalId: '' });
+    setFormData({ name: '', erp_code: '', ifood_code: '', region_id: '' });
     setFormError('');
     setIsModalOpen(true);
   };
 
   const openEditModal = (loja: Loja) => {
     setEditingLoja(loja);
-    setFormData({ nome: loja.nome, idLojaErp: loja.idLojaErp, idLojaIfood: loja.idLojaIfood, regionalId: loja.regionalId });
+    setFormData({
+      name: loja.name,
+      erp_code: loja.erp_code,
+      ifood_code: loja.ifood_code,
+      region_id: loja.region_id
+    });
     setFormError('');
     setIsModalOpen(true);
   };
@@ -157,8 +193,9 @@ const Lojas: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingLoja(null);
-    setFormData({ nome: '', idLojaErp: '', idLojaIfood: '', regionalId: '' });
+    setFormData({ name: '', erp_code: '', ifood_code: '', region_id: '' });
     setFormError('');
+    setIsSubmitting(false);
   };
 
   const closeDeleteModal = () => {
@@ -166,7 +203,7 @@ const Lojas: React.FC = () => {
     setDeletingLoja(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
@@ -176,38 +213,59 @@ const Lojas: React.FC = () => {
       return;
     }
 
-    if (editingLoja) {
-      setLojas(prev =>
-        prev.map(l =>
-          l.id === editingLoja.id 
-            ? { 
-                ...l, 
-                nome: formData.nome.trim(), 
-                idLojaErp: formData.idLojaErp.trim(),
-                idLojaIfood: formData.idLojaIfood.trim(),
-                regionalId: formData.regionalId 
-              } 
-            : l
-        )
-      );
-    } else {
-      const newLoja: Loja = {
-        id: Date.now().toString(),
-        nome: formData.nome.trim(),
-        idLojaErp: formData.idLojaErp.trim(),
-        idLojaIfood: formData.idLojaIfood.trim(),
-        regionalId: formData.regionalId,
-      };
-      setLojas(prev => [...prev, newLoja]);
-    }
+    setIsSubmitting(true);
 
-    closeModal();
+    try {
+      if (editingLoja) {
+        // Update
+        const { error } = await supabase
+          .from('stores')
+          .update(formData)
+          .eq('id', editingLoja.id);
+
+        if (error) throw error;
+        toast({ title: "Loja atualizada com sucesso" });
+      } else {
+        // Create
+        const { error } = await supabase
+          .from('stores')
+          .insert([formData]);
+
+        if (error) throw error;
+        toast({ title: "Loja criada com sucesso" });
+      }
+
+      await fetchData(); // Refresh list
+      closeModal();
+    } catch (error: any) {
+      console.error('Error saving store:', error);
+      setFormError(error.message || "Erro ao salvar loja");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDelete = () => {
-    if (deletingLoja) {
-      setLojas(prev => prev.filter(l => l.id !== deletingLoja.id));
+  const handleDelete = async () => {
+    if (!deletingLoja) return;
+
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .delete()
+        .eq('id', deletingLoja.id);
+
+      if (error) throw error;
+
+      toast({ title: "Loja excluída com sucesso" });
+      await fetchData();
       closeDeleteModal();
+    } catch (error: any) {
+      console.error('Error deleting store:', error);
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   };
 
@@ -251,13 +309,13 @@ const Lojas: React.FC = () => {
               >
                 <option value="">Todas Regionais</option>
                 {regionais.map(r => (
-                  <option key={r.id} value={r.id}>{r.nome}</option>
+                  <option key={r.id} value={r.id}>{r.name}</option>
                 ))}
               </select>
             </div>
           </div>
-          <button 
-            onClick={openCreateModal} 
+          <button
+            onClick={openCreateModal}
             className="h-11 px-4 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 transition-colors inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -267,136 +325,144 @@ const Lojas: React.FC = () => {
 
         {/* Table Card */}
         <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-foreground/5 border-b border-border">
-                  <th className="text-left px-6 py-4">
-                    <button
-                      onClick={() => handleSort('nome')}
-                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
-                    >
-                      Nome
-                      <SortIcon field="nome" />
-                    </button>
-                  </th>
-                  <th className="text-left px-6 py-4">
-                    <button
-                      onClick={() => handleSort('idLojaErp')}
-                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
-                    >
-                      ID ERP
-                      <SortIcon field="idLojaErp" />
-                    </button>
-                  </th>
-                  <th className="text-left px-6 py-4">
-                    <button
-                      onClick={() => handleSort('idLojaIfood')}
-                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
-                    >
-                      ID iFood
-                      <SortIcon field="idLojaIfood" />
-                    </button>
-                  </th>
-                  <th className="text-left px-6 py-4">
-                    <button
-                      onClick={() => handleSort('regional')}
-                      className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
-                    >
-                      Regional
-                      <SortIcon field="regional" />
-                    </button>
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-28">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {sortedAndFilteredLojas.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
-                          <Store className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-foreground font-medium">
-                            {searchTerm ? 'Nenhuma loja encontrada' : 'Nenhuma loja cadastrada'}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {searchTerm ? 'Tente buscar por outro termo' : 'Clique em "Nova Loja" para começar'}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedLojas.map((loja, index) => (
-                    <tr 
-                      key={loja.id} 
-                      className="group hover:bg-secondary/40 transition-colors"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-foreground/5 rounded-lg flex items-center justify-center">
-                            <Store className="w-4 h-4 text-foreground/70" />
-                          </div>
-                          <span className="font-medium text-foreground">{loja.nome}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-mono text-muted-foreground">{loja.idLojaErp}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-mono text-muted-foreground">{loja.idLojaIfood}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">
-                          {getRegionalNome(loja.regionalId)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => openEditModal(loja)}
-                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                            title="Editar"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(loja)}
-                            className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+          {isLoading ? (
+            <div className="p-12 flex justify-center items-center">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-foreground/5 border-b border-border">
+                      <th className="text-left px-6 py-4">
+                        <button
+                          onClick={() => handleSort('name')}
+                          className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                        >
+                          Nome
+                          <SortIcon field="name" />
+                        </button>
+                      </th>
+                      <th className="text-left px-6 py-4">
+                        <button
+                          onClick={() => handleSort('erp_code')}
+                          className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                        >
+                          ID ERP
+                          <SortIcon field="erp_code" />
+                        </button>
+                      </th>
+                      <th className="text-left px-6 py-4">
+                        <button
+                          onClick={() => handleSort('ifood_code')}
+                          className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                        >
+                          ID iFood
+                          <SortIcon field="ifood_code" />
+                        </button>
+                      </th>
+                      <th className="text-left px-6 py-4">
+                        <button
+                          onClick={() => handleSort('region')}
+                          className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
+                        >
+                          Regional
+                          <SortIcon field="region" />
+                        </button>
+                      </th>
+                      <th className="text-right px-6 py-4 text-xs font-semibold text-foreground uppercase tracking-wider w-28">
+                        Ações
+                      </th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {sortedAndFilteredLojas.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-16 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
+                              <Store className="w-6 h-6 text-muted-foreground" />
+                            </div>
+                            <div>
+                              <p className="text-foreground font-medium">
+                                {searchTerm ? 'Nenhuma loja encontrada' : 'Nenhuma loja cadastrada'}
+                              </p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {searchTerm ? 'Tente buscar por outro termo' : 'Clique em "Nova Loja" para começar'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedLojas.map((loja, index) => (
+                        <tr
+                          key={loja.id}
+                          className="group hover:bg-secondary/40 transition-colors"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-foreground/5 rounded-lg flex items-center justify-center">
+                                <Store className="w-4 h-4 text-foreground/70" />
+                              </div>
+                              <span className="font-medium text-foreground">{loja.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-mono text-muted-foreground">{loja.erp_code}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-mono text-muted-foreground">{loja.ifood_code}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="inline-flex px-2.5 py-1 bg-secondary rounded-md text-sm text-foreground">
+                              {getRegionalNome(loja.region_id)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => openEditModal(loja)}
+                                className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                title="Editar"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => openDeleteModal(loja)}
+                                className="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            totalItems={sortedAndFilteredLojas.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            itemLabel="loja"
-          />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={sortedAndFilteredLojas.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                itemLabel="loja"
+              />
+            </>
+          )}
         </div>
       </div>
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div 
+          <div
             className="bg-background border border-border rounded-2xl w-full max-w-md shadow-2xl animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
@@ -409,8 +475,8 @@ const Lojas: React.FC = () => {
                   {editingLoja ? 'Editar Loja' : 'Nova Loja'}
                 </h2>
               </div>
-              <button 
-                onClick={closeModal} 
+              <button
+                onClick={closeModal}
                 className="w-8 h-8 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-muted-foreground" />
@@ -424,43 +490,46 @@ const Lojas: React.FC = () => {
                 </div>
               )}
               <div className="space-y-2">
-                <label htmlFor="nome" className="block text-sm font-medium text-foreground">
+                <label htmlFor="name" className="block text-sm font-medium text-foreground">
                   Nome da Loja
                 </label>
                 <input
-                  id="nome"
+                  id="name"
                   type="text"
-                  value={formData.nome}
-                  onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Ex: Loja Centro, Loja Norte..."
                   className="w-full h-11 px-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
                   autoFocus
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="idLojaErp" className="block text-sm font-medium text-foreground">
+                <label htmlFor="erp_code" className="block text-sm font-medium text-foreground">
                   ID ERP
                 </label>
                 <input
-                  id="idLojaErp"
+                  id="erp_code"
                   type="text"
-                  value={formData.idLojaErp}
-                  onChange={(e) => setFormData(prev => ({ ...prev, idLojaErp: e.target.value }))}
+                  value={formData.erp_code}
+                  onChange={(e) => setFormData(prev => ({ ...prev, erp_code: e.target.value }))}
                   placeholder="Ex: ERP001"
                   className="w-full h-11 px-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="idLojaIfood" className="block text-sm font-medium text-foreground">
+                <label htmlFor="ifood_code" className="block text-sm font-medium text-foreground">
                   ID iFood
                 </label>
                 <input
-                  id="idLojaIfood"
+                  id="ifood_code"
                   type="text"
-                  value={formData.idLojaIfood}
-                  onChange={(e) => setFormData(prev => ({ ...prev, idLojaIfood: e.target.value }))}
+                  value={formData.ifood_code}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ifood_code: e.target.value }))}
                   placeholder="Ex: IF001"
                   className="w-full h-11 px-4 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -469,14 +538,15 @@ const Lojas: React.FC = () => {
                 </label>
                 <select
                   id="regional"
-                  value={formData.regionalId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, regionalId: e.target.value }))}
+                  value={formData.region_id}
+                  onChange={(e) => setFormData(prev => ({ ...prev, region_id: e.target.value }))}
                   className="w-full h-11 px-4 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+                  disabled={isSubmitting}
                 >
                   <option value="">Selecione uma regional</option>
                   {regionais.map(regional => (
                     <option key={regional.id} value={regional.id}>
-                      {regional.nome}
+                      {regional.name}
                     </option>
                   ))}
                 </select>
@@ -485,10 +555,11 @@ const Lojas: React.FC = () => {
                 </p>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={closeModal} className="flex-1 h-11 px-4 border border-border rounded-lg font-medium text-foreground hover:bg-secondary transition-colors">
+                <button type="button" onClick={closeModal} className="flex-1 h-11 px-4 border border-border rounded-lg font-medium text-foreground hover:bg-secondary transition-colors" disabled={isSubmitting}>
                   Cancelar
                 </button>
-                <button type="submit" className="flex-1 h-11 px-4 bg-foreground text-background rounded-lg font-medium hover:bg-foreground/90 transition-colors">
+                <button type="submit" className="flex-1 h-11 px-4 bg-foreground text-background rounded-lg font-medium hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2" disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   {editingLoja ? 'Salvar Alterações' : 'Criar Loja'}
                 </button>
               </div>
@@ -500,7 +571,7 @@ const Lojas: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && deletingLoja && (
         <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div 
+          <div
             className="bg-background border border-border rounded-2xl w-full max-w-md shadow-2xl animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
@@ -511,7 +582,7 @@ const Lojas: React.FC = () => {
               <h2 className="text-lg font-semibold text-foreground">Excluir Loja</h2>
               <p className="text-muted-foreground mt-2">
                 Tem certeza que deseja excluir a loja{' '}
-                <strong className="text-foreground">{deletingLoja.nome}</strong>?
+                <strong className="text-foreground">{deletingLoja.name}</strong>?
               </p>
               <p className="text-sm text-muted-foreground mt-3 p-3 bg-secondary/50 rounded-lg">
                 Esta ação não pode ser desfeita.
@@ -521,8 +592,8 @@ const Lojas: React.FC = () => {
               <button onClick={closeDeleteModal} className="flex-1 h-11 px-4 border border-border rounded-lg font-medium text-foreground hover:bg-secondary transition-colors">
                 Cancelar
               </button>
-              <button 
-                onClick={handleDelete} 
+              <button
+                onClick={handleDelete}
                 className="flex-1 h-11 px-4 bg-destructive text-destructive-foreground rounded-lg font-medium hover:bg-destructive/90 transition-colors"
               >
                 Sim, Excluir
